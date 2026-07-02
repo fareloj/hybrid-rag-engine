@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+
+.env
+.tools/
+
+build/
+out/
+
+.pytest_cache/
+.mypy_cache/
+
+postgres-data/
+ollama-data/

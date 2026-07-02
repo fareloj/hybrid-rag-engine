@@ -1,0 +1,726 @@
+﻿{
+    "status":  "succeeded",
+    "top_k":  5,
+    "query_count":  8,
+    "modes":  [
+                  "dense_cpp",
+                  "pgvector",
+                  "bm25",
+                  "rrf",
+                  "rerank"
+              ],
+    "aggregate":  {
+                      "dense_cpp":  {
+                                        "recall_at_k":  0.625,
+                                        "mrr":  0.3229166666666667,
+                                        "ndcg_at_k":  0.39906700815203855,
+                                        "latency_ms":  12.229939999997441
+                                    },
+                      "pgvector":  {
+                                       "recall_at_k":  0.625,
+                                       "mrr":  0.3229166666666667,
+                                       "ndcg_at_k":  0.39906700815203855,
+                                       "latency_ms":  2.6956988754136546
+                                   },
+                      "bm25":  {
+                                   "recall_at_k":  0.6875,
+                                   "mrr":  0.55625,
+                                   "ndcg_at_k":  0.5538345697591741,
+                                   "latency_ms":  13.841593624874804
+                               },
+                      "rrf":  {
+                                  "recall_at_k":  0.4375,
+                                  "mrr":  0.4166666666666667,
+                                  "ndcg_at_k":  0.3891433990956823,
+                                  "latency_ms":  206.77768475025005
+                              },
+                      "rerank":  {
+                                     "recall_at_k":  0.4375,
+                                     "mrr":  0.34375,
+                                     "ndcg_at_k":  0.3343441880512886,
+                                     "latency_ms":  565.0431912499698
+                                 }
+                  },
+    "per_query":  [
+                      {
+                          "id":  "endpoint_ingest",
+                          "query":  "POST /ingest",
+                          "expected":  [
+                                           {
+                                               "path":  "services/orchestrator-python/app/main.py"
+                                           }
+                                       ],
+                          "tags":  [
+                                       "endpoint",
+                                       "exact",
+                                       "code"
+                                   ],
+                          "modes":  {
+                                        "dense_cpp":  {
+                                                          "recall_at_k":  1.0,
+                                                          "mrr":  0.5,
+                                                          "ndcg_at_k":  0.6309297535714575,
+                                                          "latency_ms":  12.787980000211974,
+                                                          "top_paths":  [
+                                                                            "services/orchestrator-python/app/ingestion.py",
+                                                                            "services/orchestrator-python/app/main.py",
+                                                                            "README.md",
+                                                                            "services/orchestrator-python/app/main.py",
+                                                                            "rag-hybrid-planning/ROADMAP.md"
+                                                                        ]
+                                                      },
+                                        "pgvector":  {
+                                                         "recall_at_k":  1.0,
+                                                         "mrr":  0.5,
+                                                         "ndcg_at_k":  0.6309297535714575,
+                                                         "latency_ms":  3.722424000443425,
+                                                         "top_paths":  [
+                                                                           "services/orchestrator-python/app/ingestion.py",
+                                                                           "services/orchestrator-python/app/main.py",
+                                                                           "README.md",
+                                                                           "services/orchestrator-python/app/main.py",
+                                                                           "rag-hybrid-planning/ROADMAP.md"
+                                                                       ]
+                                                     },
+                                        "bm25":  {
+                                                     "recall_at_k":  1.0,
+                                                     "mrr":  0.25,
+                                                     "ndcg_at_k":  0.43067655807339306,
+                                                     "latency_ms":  17.82930999979726,
+                                                     "top_paths":  [
+                                                                       "README.md",
+                                                                       "README.md",
+                                                                       "README.md",
+                                                                       "services/orchestrator-python/app/main.py",
+                                                                       "services/dense-index-cpp/src/main.cpp"
+                                                                   ]
+                                                 },
+                                        "rrf":  {
+                                                    "recall_at_k":  1.0,
+                                                    "mrr":  1.0,
+                                                    "ndcg_at_k":  1.0,
+                                                    "latency_ms":  211.99977800097258,
+                                                    "top_paths":  [
+                                                                      "services/orchestrator-python/app/main.py",
+                                                                      "README.md",
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "services/orchestrator-python/app/ingestion.py",
+                                                                      "services/orchestrator-python/app/main.py"
+                                                                  ]
+                                                },
+                                        "rerank":  {
+                                                       "recall_at_k":  1.0,
+                                                       "mrr":  0.25,
+                                                       "ndcg_at_k":  0.43067655807339306,
+                                                       "latency_ms":  730.7223990010243,
+                                                       "top_paths":  [
+                                                                         "README.md",
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "services/orchestrator-python/app/ingestion.py",
+                                                                         "services/orchestrator-python/app/main.py",
+                                                                         "services/orchestrator-python/app/main.py"
+                                                                     ]
+                                                   }
+                                    },
+                          "overlap":  {
+                                          "dense_cpp_vs_pgvector":  1.0,
+                                          "rrf_vs_bm25":  0.25,
+                                          "rrf_vs_rerank":  1.0
+                                      }
+                      },
+                      {
+                          "id":  "function_ingest_accent",
+                          "query":  "buscar funÃ§Ã£o ingest",
+                          "expected":  [
+                                           {
+                                               "path":  "services/orchestrator-python/app/ingestion.py"
+                                           }
+                                       ],
+                          "tags":  [
+                                       "accent",
+                                       "function",
+                                       "natural"
+                                   ],
+                          "modes":  {
+                                        "dense_cpp":  {
+                                                          "recall_at_k":  0.0,
+                                                          "mrr":  0.0,
+                                                          "ndcg_at_k":  0.0,
+                                                          "latency_ms":  17.979354999624775,
+                                                          "top_paths":  [
+                                                                            "rag-hybrid-planning/ROADMAP.md",
+                                                                            "services/orchestrator-python/app/evaluation.py",
+                                                                            "docker-compose.yml",
+                                                                            "services/orchestrator-python/app/dense_index.py",
+                                                                            "services/orchestrator-python/app/evaluation.py"
+                                                                        ]
+                                                      },
+                                        "pgvector":  {
+                                                         "recall_at_k":  0.0,
+                                                         "mrr":  0.0,
+                                                         "ndcg_at_k":  0.0,
+                                                         "latency_ms":  2.5220490006176988,
+                                                         "top_paths":  [
+                                                                           "rag-hybrid-planning/ROADMAP.md",
+                                                                           "services/orchestrator-python/app/evaluation.py",
+                                                                           "docker-compose.yml",
+                                                                           "services/orchestrator-python/app/dense_index.py",
+                                                                           "services/orchestrator-python/app/evaluation.py"
+                                                                       ]
+                                                     },
+                                        "bm25":  {
+                                                     "recall_at_k":  0.0,
+                                                     "mrr":  0.0,
+                                                     "ndcg_at_k":  0.0,
+                                                     "latency_ms":  12.653693000174826,
+                                                     "top_paths":  [
+                                                                       "rag-hybrid-planning/ROADMAP.md",
+                                                                       "README.md",
+                                                                       "services/orchestrator-python/app/main.py",
+                                                                       "README.md",
+                                                                       "rag-hybrid-planning/ROADMAP.md"
+                                                                   ]
+                                                 },
+                                        "rrf":  {
+                                                    "recall_at_k":  0.0,
+                                                    "mrr":  0.0,
+                                                    "ndcg_at_k":  0.0,
+                                                    "latency_ms":  206.58770100089896,
+                                                    "top_paths":  [
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "README.md",
+                                                                      "services/orchestrator-python/app/evaluation.py",
+                                                                      "docker-compose.yml",
+                                                                      "services/orchestrator-python/app/dense_index.py"
+                                                                  ]
+                                                },
+                                        "rerank":  {
+                                                       "recall_at_k":  0.0,
+                                                       "mrr":  0.0,
+                                                       "ndcg_at_k":  0.0,
+                                                       "latency_ms":  496.05155300014303,
+                                                       "top_paths":  [
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "README.md",
+                                                                         "services/orchestrator-python/app/evaluation.py",
+                                                                         "services/orchestrator-python/app/dense_index.py",
+                                                                         "docker-compose.yml"
+                                                                     ]
+                                                   }
+                                    },
+                          "overlap":  {
+                                          "dense_cpp_vs_pgvector":  1.0,
+                                          "rrf_vs_bm25":  0.25,
+                                          "rrf_vs_rerank":  1.0
+                                      }
+                      },
+                      {
+                          "id":  "function_ingest_no_accent",
+                          "query":  "buscar funcao ingest",
+                          "expected":  [
+                                           {
+                                               "path":  "services/orchestrator-python/app/ingestion.py"
+                                           }
+                                       ],
+                          "tags":  [
+                                       "no_accent",
+                                       "function",
+                                       "natural"
+                                   ],
+                          "modes":  {
+                                        "dense_cpp":  {
+                                                          "recall_at_k":  1.0,
+                                                          "mrr":  0.25,
+                                                          "ndcg_at_k":  0.43067655807339306,
+                                                          "latency_ms":  13.001498000448919,
+                                                          "top_paths":  [
+                                                                            "rag-hybrid-planning/ROADMAP.md",
+                                                                            "docker-compose.yml",
+                                                                            "services/orchestrator-python/app/evaluation.py",
+                                                                            "services/orchestrator-python/app/ingestion.py",
+                                                                            "README.md"
+                                                                        ]
+                                                      },
+                                        "pgvector":  {
+                                                         "recall_at_k":  1.0,
+                                                         "mrr":  0.25,
+                                                         "ndcg_at_k":  0.43067655807339306,
+                                                         "latency_ms":  3.0109079998510424,
+                                                         "top_paths":  [
+                                                                           "rag-hybrid-planning/ROADMAP.md",
+                                                                           "docker-compose.yml",
+                                                                           "services/orchestrator-python/app/evaluation.py",
+                                                                           "services/orchestrator-python/app/ingestion.py",
+                                                                           "README.md"
+                                                                       ]
+                                                     },
+                                        "bm25":  {
+                                                     "recall_at_k":  0.0,
+                                                     "mrr":  0.0,
+                                                     "ndcg_at_k":  0.0,
+                                                     "latency_ms":  12.615388000995154,
+                                                     "top_paths":  [
+                                                                       "rag-hybrid-planning/ROADMAP.md",
+                                                                       "README.md",
+                                                                       "services/orchestrator-python/app/main.py",
+                                                                       "README.md",
+                                                                       "rag-hybrid-planning/ROADMAP.md"
+                                                                   ]
+                                                 },
+                                        "rrf":  {
+                                                    "recall_at_k":  0.0,
+                                                    "mrr":  0.0,
+                                                    "ndcg_at_k":  0.0,
+                                                    "latency_ms":  211.17783900081122,
+                                                    "top_paths":  [
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "README.md",
+                                                                      "services/orchestrator-python/app/main.py",
+                                                                      "docker-compose.yml",
+                                                                      "services/orchestrator-python/app/evaluation.py"
+                                                                  ]
+                                                },
+                                        "rerank":  {
+                                                       "recall_at_k":  0.0,
+                                                       "mrr":  0.0,
+                                                       "ndcg_at_k":  0.0,
+                                                       "latency_ms":  527.2056239991798,
+                                                       "top_paths":  [
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "README.md",
+                                                                         "services/orchestrator-python/app/evaluation.py",
+                                                                         "services/orchestrator-python/app/main.py",
+                                                                         "docker-compose.yml"
+                                                                     ]
+                                                   }
+                                    },
+                          "overlap":  {
+                                          "dense_cpp_vs_pgvector":  1.0,
+                                          "rrf_vs_bm25":  0.42857142857142855,
+                                          "rrf_vs_rerank":  1.0
+                                      }
+                      },
+                      {
+                          "id":  "lexical_metadata_symbols",
+                          "query":  "chunks start_line end_line",
+                          "expected":  [
+                                           {
+                                               "path":  "services/orchestrator-python/app/search.py"
+                                           }
+                                       ],
+                          "tags":  [
+                                       "symbols",
+                                       "metadata",
+                                       "code"
+                                   ],
+                          "modes":  {
+                                        "dense_cpp":  {
+                                                          "recall_at_k":  0.0,
+                                                          "mrr":  0.0,
+                                                          "ndcg_at_k":  0.0,
+                                                          "latency_ms":  10.837042000275687,
+                                                          "top_paths":  [
+                                                                            "services/orchestrator-python/tests/test_ingestion.py",
+                                                                            "services/reranker-python/requirements-ml.txt",
+                                                                            "rag-hybrid-planning/ROADMAP.md",
+                                                                            "scripts/db-smoke-test.ps1",
+                                                                            "services/orchestrator-python/app/evaluation.py"
+                                                                        ]
+                                                      },
+                                        "pgvector":  {
+                                                         "recall_at_k":  0.0,
+                                                         "mrr":  0.0,
+                                                         "ndcg_at_k":  0.0,
+                                                         "latency_ms":  2.2123690014268504,
+                                                         "top_paths":  [
+                                                                           "services/orchestrator-python/tests/test_ingestion.py",
+                                                                           "services/reranker-python/requirements-ml.txt",
+                                                                           "rag-hybrid-planning/ROADMAP.md",
+                                                                           "scripts/db-smoke-test.ps1",
+                                                                           "services/orchestrator-python/app/evaluation.py"
+                                                                       ]
+                                                     },
+                                        "bm25":  {
+                                                     "recall_at_k":  1.0,
+                                                     "mrr":  0.2,
+                                                     "ndcg_at_k":  0.38685280723454163,
+                                                     "latency_ms":  11.446032998719602,
+                                                     "top_paths":  [
+                                                                       "services/orchestrator-python/tests/test_ingestion.py",
+                                                                       "infra/postgres/migrations/001_initial_schema.sql",
+                                                                       "services/orchestrator-python/app/ingestion.py",
+                                                                       "services/orchestrator-python/app/ingestion.py",
+                                                                       "services/orchestrator-python/app/search.py"
+                                                                   ]
+                                                 },
+                                        "rrf":  {
+                                                    "recall_at_k":  0.0,
+                                                    "mrr":  0.0,
+                                                    "ndcg_at_k":  0.0,
+                                                    "latency_ms":  207.16363999963505,
+                                                    "top_paths":  [
+                                                                      "services/orchestrator-python/tests/test_ingestion.py",
+                                                                      "services/reranker-python/requirements-ml.txt",
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "scripts/db-smoke-test.ps1",
+                                                                      "services/orchestrator-python/app/evaluation.py"
+                                                                  ]
+                                                },
+                                        "rerank":  {
+                                                       "recall_at_k":  0.0,
+                                                       "mrr":  0.0,
+                                                       "ndcg_at_k":  0.0,
+                                                       "latency_ms":  509.4888389994594,
+                                                       "top_paths":  [
+                                                                         "services/orchestrator-python/app/evaluation.py",
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "scripts/db-smoke-test.ps1",
+                                                                         "services/orchestrator-python/tests/test_ingestion.py",
+                                                                         "services/reranker-python/requirements-ml.txt"
+                                                                     ]
+                                                   }
+                                    },
+                          "overlap":  {
+                                          "dense_cpp_vs_pgvector":  1.0,
+                                          "rrf_vs_bm25":  0.1111111111111111,
+                                          "rrf_vs_rerank":  1.0
+                                      }
+                      },
+                      {
+                          "id":  "repo_scanner",
+                          "query":  "repository scanner",
+                          "expected":  [
+                                           {
+                                               "path":  "services/orchestrator-python/app/ingestion.py"
+                                           }
+                                       ],
+                          "tags":  [
+                                       "english",
+                                       "scanner"
+                                   ],
+                          "modes":  {
+                                        "dense_cpp":  {
+                                                          "recall_at_k":  0.0,
+                                                          "mrr":  0.0,
+                                                          "ndcg_at_k":  0.0,
+                                                          "latency_ms":  9.758484000485623,
+                                                          "top_paths":  [
+                                                                            "rag-hybrid-planning/ROADMAP.md",
+                                                                            "docker-compose.yml",
+                                                                            "rag-hybrid-planning/ROADMAP.md",
+                                                                            "services/lexical-index-java/src/main/java/dev/rag/lexical/Main.java",
+                                                                            "services/orchestrator-python/app/evaluation.py"
+                                                                        ]
+                                                      },
+                                        "pgvector":  {
+                                                         "recall_at_k":  0.0,
+                                                         "mrr":  0.0,
+                                                         "ndcg_at_k":  0.0,
+                                                         "latency_ms":  2.4344630000996403,
+                                                         "top_paths":  [
+                                                                           "rag-hybrid-planning/ROADMAP.md",
+                                                                           "docker-compose.yml",
+                                                                           "rag-hybrid-planning/ROADMAP.md",
+                                                                           "services/lexical-index-java/src/main/java/dev/rag/lexical/Main.java",
+                                                                           "services/orchestrator-python/app/evaluation.py"
+                                                                       ]
+                                                     },
+                                        "bm25":  {
+                                                     "recall_at_k":  1.0,
+                                                     "mrr":  1.0,
+                                                     "ndcg_at_k":  1.0,
+                                                     "latency_ms":  11.169362000146066,
+                                                     "top_paths":  [
+                                                                       "services/orchestrator-python/app/ingestion.py",
+                                                                       "rag-hybrid-planning/ROADMAP.md",
+                                                                       "proto/rag/v1/retrieval.proto"
+                                                                   ]
+                                                 },
+                                        "rrf":  {
+                                                    "recall_at_k":  0.0,
+                                                    "mrr":  0.0,
+                                                    "ndcg_at_k":  0.0,
+                                                    "latency_ms":  202.21440299974347,
+                                                    "top_paths":  [
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "docker-compose.yml",
+                                                                      "services/lexical-index-java/src/main/java/dev/rag/lexical/Main.java",
+                                                                      "services/orchestrator-python/app/evaluation.py"
+                                                                  ]
+                                                },
+                                        "rerank":  {
+                                                       "recall_at_k":  0.0,
+                                                       "mrr":  0.0,
+                                                       "ndcg_at_k":  0.0,
+                                                       "latency_ms":  574.6115790007025,
+                                                       "top_paths":  [
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "services/lexical-index-java/src/main/java/dev/rag/lexical/Main.java",
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "services/orchestrator-python/app/evaluation.py",
+                                                                         "docker-compose.yml"
+                                                                     ]
+                                                   }
+                                    },
+                          "overlap":  {
+                                          "dense_cpp_vs_pgvector":  1.0,
+                                          "rrf_vs_bm25":  0.14285714285714285,
+                                          "rrf_vs_rerank":  1.0
+                                      }
+                      },
+                      {
+                          "id":  "reranker_cuda_config",
+                          "query":  "reranker cuda gpu device",
+                          "expected":  [
+                                           {
+                                               "path":  "services/reranker-python/app/main.py"
+                                           },
+                                           {
+                                               "path":  "docker-compose.yml"
+                                           }
+                                       ],
+                          "tags":  [
+                                       "reranker",
+                                       "cuda",
+                                       "config"
+                                   ],
+                          "modes":  {
+                                        "dense_cpp":  {
+                                                          "recall_at_k":  1.0,
+                                                          "mrr":  1.0,
+                                                          "ndcg_at_k":  1.0,
+                                                          "latency_ms":  11.176023999723839,
+                                                          "top_paths":  [
+                                                                            "docker-compose.yml",
+                                                                            "services/reranker-python/app/main.py",
+                                                                            "rag-hybrid-planning/ROADMAP.md",
+                                                                            "services/orchestrator-python/app/reranker.py",
+                                                                            "services/reranker-python/app/main.py"
+                                                                        ]
+                                                      },
+                                        "pgvector":  {
+                                                         "recall_at_k":  1.0,
+                                                         "mrr":  1.0,
+                                                         "ndcg_at_k":  1.0,
+                                                         "latency_ms":  2.7229750012338627,
+                                                         "top_paths":  [
+                                                                           "docker-compose.yml",
+                                                                           "services/reranker-python/app/main.py",
+                                                                           "rag-hybrid-planning/ROADMAP.md",
+                                                                           "services/orchestrator-python/app/reranker.py",
+                                                                           "services/reranker-python/app/main.py"
+                                                                       ]
+                                                     },
+                                        "bm25":  {
+                                                     "recall_at_k":  0.5,
+                                                     "mrr":  1.0,
+                                                     "ndcg_at_k":  0.6131471927654584,
+                                                     "latency_ms":  11.431707998781349,
+                                                     "top_paths":  [
+                                                                       "services/reranker-python/app/main.py",
+                                                                       "services/reranker-python/app/main.py",
+                                                                       "README.md",
+                                                                       "services/reranker-python/app/main.py",
+                                                                       "services/reranker-python/Dockerfile"
+                                                                   ]
+                                                 },
+                                        "rrf":  {
+                                                    "recall_at_k":  0.5,
+                                                    "mrr":  1.0,
+                                                    "ndcg_at_k":  0.6131471927654584,
+                                                    "latency_ms":  210.69270900079573,
+                                                    "top_paths":  [
+                                                                      "services/reranker-python/app/main.py",
+                                                                      "services/reranker-python/app/main.py",
+                                                                      "README.md",
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "services/reranker-python/requirements-ml.txt"
+                                                                  ]
+                                                },
+                                        "rerank":  {
+                                                       "recall_at_k":  0.5,
+                                                       "mrr":  1.0,
+                                                       "ndcg_at_k":  0.6131471927654584,
+                                                       "latency_ms":  590.3400910010532,
+                                                       "top_paths":  [
+                                                                         "services/reranker-python/app/main.py",
+                                                                         "services/reranker-python/app/main.py",
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "README.md",
+                                                                         "services/reranker-python/requirements-ml.txt"
+                                                                     ]
+                                                   }
+                                    },
+                          "overlap":  {
+                                          "dense_cpp_vs_pgvector":  1.0,
+                                          "rrf_vs_bm25":  0.42857142857142855,
+                                          "rrf_vs_rerank":  1.0
+                                      }
+                      },
+                      {
+                          "id":  "ambiguous_music_date",
+                          "query":  "mÃºsica 11/01",
+                          "expected":  [
+                                           {
+                                               "path":  "rag-hybrid-planning/ROADMAP.md"
+                                           }
+                                       ],
+                          "tags":  [
+                                       "ambiguous",
+                                       "accent",
+                                       "date"
+                                   ],
+                          "modes":  {
+                                        "dense_cpp":  {
+                                                          "recall_at_k":  1.0,
+                                                          "mrr":  0.5,
+                                                          "ndcg_at_k":  0.6309297535714575,
+                                                          "latency_ms":  9.988764999434352,
+                                                          "top_paths":  [
+                                                                            "docker-compose.yml",
+                                                                            "rag-hybrid-planning/ROADMAP.md",
+                                                                            "services/reranker-python/requirements-ml.txt",
+                                                                            "services/reranker-python/requirements.txt",
+                                                                            "proto/rag/v1/retrieval.proto"
+                                                                        ]
+                                                      },
+                                        "pgvector":  {
+                                                         "recall_at_k":  1.0,
+                                                         "mrr":  0.5,
+                                                         "ndcg_at_k":  0.6309297535714575,
+                                                         "latency_ms":  2.479569999195519,
+                                                         "top_paths":  [
+                                                                           "docker-compose.yml",
+                                                                           "rag-hybrid-planning/ROADMAP.md",
+                                                                           "services/reranker-python/requirements-ml.txt",
+                                                                           "services/reranker-python/requirements.txt",
+                                                                           "proto/rag/v1/retrieval.proto"
+                                                                       ]
+                                                     },
+                                        "bm25":  {
+                                                     "recall_at_k":  1.0,
+                                                     "mrr":  1.0,
+                                                     "ndcg_at_k":  1.0,
+                                                     "latency_ms":  22.370222000972717,
+                                                     "top_paths":  [
+                                                                       "rag-hybrid-planning/ROADMAP.md"
+                                                                   ]
+                                                 },
+                                        "rrf":  {
+                                                    "recall_at_k":  1.0,
+                                                    "mrr":  1.0,
+                                                    "ndcg_at_k":  1.0,
+                                                    "latency_ms":  200.44217099894013,
+                                                    "top_paths":  [
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "docker-compose.yml",
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "services/reranker-python/requirements-ml.txt",
+                                                                      "services/reranker-python/requirements.txt"
+                                                                  ]
+                                                },
+                                        "rerank":  {
+                                                       "recall_at_k":  1.0,
+                                                       "mrr":  1.0,
+                                                       "ndcg_at_k":  1.0,
+                                                       "latency_ms":  514.2569309991813,
+                                                       "top_paths":  [
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "services/reranker-python/requirements.txt",
+                                                                         "services/reranker-python/requirements-ml.txt",
+                                                                         "docker-compose.yml"
+                                                                     ]
+                                                   }
+                                    },
+                          "overlap":  {
+                                          "dense_cpp_vs_pgvector":  1.0,
+                                          "rrf_vs_bm25":  0.2,
+                                          "rrf_vs_rerank":  1.0
+                                      }
+                      },
+                      {
+                          "id":  "orphan_document_accent",
+                          "query":  "documento Ã³rfÃ£o",
+                          "expected":  [
+                                           {
+                                               "path":  "rag-hybrid-planning/ROADMAP.md"
+                                           }
+                                       ],
+                          "tags":  [
+                                       "accent",
+                                       "rare",
+                                       "red_team"
+                                   ],
+                          "modes":  {
+                                        "dense_cpp":  {
+                                                          "recall_at_k":  1.0,
+                                                          "mrr":  0.3333333333333333,
+                                                          "ndcg_at_k":  0.5,
+                                                          "latency_ms":  12.310371999774361,
+                                                          "top_paths":  [
+                                                                            "docker-compose.yml",
+                                                                            "services/reranker-python/requirements-ml.txt",
+                                                                            "rag-hybrid-planning/ROADMAP.md",
+                                                                            "proto/rag/v1/retrieval.proto",
+                                                                            "services/orchestrator-python/app/evaluation.py"
+                                                                        ]
+                                                      },
+                                        "pgvector":  {
+                                                         "recall_at_k":  1.0,
+                                                         "mrr":  0.3333333333333333,
+                                                         "ndcg_at_k":  0.5,
+                                                         "latency_ms":  2.4608330004411982,
+                                                         "top_paths":  [
+                                                                           "docker-compose.yml",
+                                                                           "services/reranker-python/requirements-ml.txt",
+                                                                           "rag-hybrid-planning/ROADMAP.md",
+                                                                           "proto/rag/v1/retrieval.proto",
+                                                                           "services/orchestrator-python/app/evaluation.py"
+                                                                       ]
+                                                     },
+                                        "bm25":  {
+                                                     "recall_at_k":  1.0,
+                                                     "mrr":  1.0,
+                                                     "ndcg_at_k":  1.0,
+                                                     "latency_ms":  11.217032999411458,
+                                                     "top_paths":  [
+                                                                       "rag-hybrid-planning/ROADMAP.md"
+                                                                   ]
+                                                 },
+                                        "rrf":  {
+                                                    "recall_at_k":  1.0,
+                                                    "mrr":  0.3333333333333333,
+                                                    "ndcg_at_k":  0.5,
+                                                    "latency_ms":  203.94323700020323,
+                                                    "top_paths":  [
+                                                                      "docker-compose.yml",
+                                                                      "services/reranker-python/requirements-ml.txt",
+                                                                      "rag-hybrid-planning/ROADMAP.md",
+                                                                      "proto/rag/v1/retrieval.proto",
+                                                                      "services/orchestrator-python/app/evaluation.py"
+                                                                  ]
+                                                },
+                                        "rerank":  {
+                                                       "recall_at_k":  1.0,
+                                                       "mrr":  0.5,
+                                                       "ndcg_at_k":  0.6309297535714575,
+                                                       "latency_ms":  577.668513999015,
+                                                       "top_paths":  [
+                                                                         "proto/rag/v1/retrieval.proto",
+                                                                         "rag-hybrid-planning/ROADMAP.md",
+                                                                         "services/orchestrator-python/app/evaluation.py",
+                                                                         "services/reranker-python/requirements-ml.txt",
+                                                                         "docker-compose.yml"
+                                                                     ]
+                                                   }
+                                    },
+                          "overlap":  {
+                                          "dense_cpp_vs_pgvector":  1.0,
+                                          "rrf_vs_bm25":  0.0,
+                                          "rrf_vs_rerank":  1.0
+                                      }
+                      }
+                  ]
+}

@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package rag.v1;
+
+message DocumentChunk {
+  string id = 1;
+  string repository = 2;
+  string path = 3;
+  string language = 4;
+  int32 start_line = 5;
+  int32 end_line = 6;
+  string text = 7;
+  map<string, string> metadata = 8;
+}
+
+message IndexChunksRequest {
+  repeated DocumentChunk chunks = 1;
+}
+
+message Vector {
+  string chunk_id = 1;
+  repeated float values = 2;
+}
+
+message IndexVectorsRequest {
+  repeated Vector vectors = 1;
+}
+
+message SearchRequest {
+  string query = 1;
+  repeated float embedding = 2;
+  int32 top_k = 3;
+  map<string, string> filters = 4;
+}
+
+message SearchResult {
+  string chunk_id = 1;
+  double score = 2;
+  int32 rank = 3;
+  string source = 4;
+}
+
+message SearchResponse {
+  repeated SearchResult results = 1;
+}
+
+message HybridSearchRequest {
+  string query = 1;
+  int32 top_k = 2;
+  map<string, string> filters = 3;
+}
+
+message HybridSearchResponse {
+  repeated DocumentChunk chunks = 1;
+}
+
+message RerankCandidate {
+  string chunk_id = 1;
+  string text = 2;
+  map<string, string> metadata = 3;
+}
+
+message RerankRequest {
+  string query = 1;
+  repeated RerankCandidate candidates = 2;
+}
+
+message RerankResult {
+  string chunk_id = 1;
+  double score = 2;
+  int32 rank = 3;
+}
+
+message RerankResponse {
+  repeated RerankResult results = 1;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  map<string, string> details = 2;
+}
+
+service DenseIndexService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc IndexVectors(IndexVectorsRequest) returns (HealthResponse);
+  rpc Search(SearchRequest) returns (SearchResponse);
+}
+
+service LexicalIndexService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc IndexChunks(IndexChunksRequest) returns (HealthResponse);
+  rpc Search(SearchRequest) returns (SearchResponse);
+}
+
+service RerankerService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc Rerank(RerankRequest) returns (RerankResponse);
+}
+
+service HybridSearchService {
+  rpc Health(HealthRequest) returns (HealthResponse);
+  rpc Search(HybridSearchRequest) returns (HybridSearchResponse);
+}

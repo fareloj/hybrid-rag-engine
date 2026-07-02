@@ -1,0 +1,121 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rag}
+      POSTGRES_USER: ${POSTGRES_USER:-rag}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rag}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+      - ./infra/postgres/migrations:/migrations:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rag} -d ${POSTGRES_DB:-rag}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+
+  dense-index-cpp:
+    build:
+      context: ./services/dense-index-cpp
+    environment:
+      DENSE_INDEX_PORT: ${DENSE_INDEX_PORT:-8081}
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  lexical-index-java:
+    build:
+      context: ./services/lexical-index-java
+    environment:
+      LEXICAL_INDEX_PORT: ${LEXICAL_INDEX_PORT:-8082}
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  reranker-python:
+    build:
+      context: ./services/reranker-python
+    environment:
+      RERANKER_PORT: ${RERANKER_PORT:-8083}
+      RERANKER_MODEL: ${RERANKER_MODEL:-Qwen/Qwen3-Reranker-0.6B}
+      MAX_SEQUENCE_LENGTH: ${MAX_SEQUENCE_LENGTH:-256}
+      MAX_DOCUMENT_CHARS: ${MAX_DOCUMENT_CHARS:-4000}
+      RERANKER_BATCH_SIZE: ${RERANKER_BATCH_SIZE:-1}
+      RERANKER_DEVICE: ${RERANKER_DEVICE:-auto}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
+      HF_HOME: /models/huggingface
+    gpus: all
+    ports:
+      - "8083:8083"
+    volumes:
+      - hf-model-cache:/models/huggingface
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8083/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  orchestrator-python:
+    build:
+      context: ./services/orchestrator-python
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      POSTGRES_HOST: postgres
+      OLLAMA_BASE_URL: http://ollama:11434
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-qwen3-embedding:0.6b}
+      CHUNK_MAX_LINES: ${CHUNK_MAX_LINES:-40}
+      RERANKER_MODEL: ${RERANKER_MODEL:-Qwen/Qwen3-Reranker-0.6B}
+      DENSE_INDEX_URL: http://dense-index-cpp:8081
+      LEXICAL_INDEX_URL: http://lexical-index-java:8082
+      RERANKER_URL: http://reranker-python:8083
+    ports:
+      - "${ORCHESTRATOR_HOST_PORT:-8090}:8080"
+    volumes:
+      - ./:/workspace:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      dense-index-cpp:
+        condition: service_healthy
+      lexical-index-java:
+        condition: service_healthy
+      reranker-python:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:
+  ollama-data:
+  hf-model-cache:
