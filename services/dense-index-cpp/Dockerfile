@@ -1,7 +1,7 @@
 FROM debian:bookworm-slim AS build
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential cmake nlohmann-json3-dev \
+    && apt-get install -y --no-install-recommends build-essential ca-certificates cmake git nlohmann-json3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src

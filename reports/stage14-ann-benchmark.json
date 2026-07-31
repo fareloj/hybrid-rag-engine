@@ -1,0 +1,16 @@
+﻿{
+    "real_corpus":  {
+                        "vectors":  138,
+                        "recall_at_10":  1.0,
+                        "linear_service_latency_ms":  0.46141818,
+                        "hnsw_service_latency_ms":  0.10500906
+                    },
+    "synthetic_corpus":  {
+                             "vectors":  10000,
+                             "dimensions":  32,
+                             "queries":  20,
+                             "recall_at_10":  1,
+                             "linear_service_latency_ms":  1.7277389500000002,
+                             "hnsw_service_latency_ms":  0.12524125
+                         }
+}

@@ -34,8 +34,15 @@ services:
       context: ./services/dense-index-cpp
     environment:
       DENSE_INDEX_PORT: ${DENSE_INDEX_PORT:-8081}
+      DENSE_SEARCH_MODE: ${DENSE_SEARCH_MODE:-hnsw}
+      DENSE_INDEX_STORAGE_PATH: /data
+      HNSW_M: ${HNSW_M:-16}
+      HNSW_EF_CONSTRUCTION: ${HNSW_EF_CONSTRUCTION:-200}
+      HNSW_EF_SEARCH: ${HNSW_EF_SEARCH:-100}
     ports:
       - "8081:8081"
+    volumes:
+      - dense-index-data:/data
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
       interval: 10s
@@ -63,8 +70,9 @@ services:
       RERANKER_MODEL: ${RERANKER_MODEL:-Qwen/Qwen3-Reranker-0.6B}
       MAX_SEQUENCE_LENGTH: ${MAX_SEQUENCE_LENGTH:-256}
       MAX_DOCUMENT_CHARS: ${MAX_DOCUMENT_CHARS:-4000}
-      RERANKER_BATCH_SIZE: ${RERANKER_BATCH_SIZE:-1}
+      RERANKER_BATCH_SIZE: ${RERANKER_BATCH_SIZE:-8}
       RERANKER_DEVICE: ${RERANKER_DEVICE:-auto}
+      RERANKER_INSTRUCTION: ${RERANKER_INSTRUCTION:-Given a software repository search query, retrieve source code or technical documentation that directly matches the requested symbol, file, endpoint, behavior, date, or requirement}
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
       NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
       HF_HOME: /models/huggingface
@@ -73,6 +81,7 @@ services:
       - "8083:8083"
     volumes:
       - hf-model-cache:/models/huggingface
+      - ./services/reranker-python/app:/app/app:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8083/health').read()"]
       interval: 10s
@@ -90,10 +99,25 @@ services:
       OLLAMA_BASE_URL: http://ollama:11434
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-qwen3-embedding:0.6b}
       CHUNK_MAX_LINES: ${CHUNK_MAX_LINES:-40}
+      MAX_FILE_BYTES: ${MAX_FILE_BYTES:-1000000}
+      MAX_QUERY_CHARS: ${MAX_QUERY_CHARS:-8000}
+      MAX_RERANK_CANDIDATES: ${MAX_RERANK_CANDIDATES:-64}
+      RERANKER_RRF_WEIGHT: ${RERANKER_RRF_WEIGHT:-0.3}
+      RERANKER_EXACT_RRF_WEIGHT: ${RERANKER_EXACT_RRF_WEIGHT:-0.95}
       RERANKER_MODEL: ${RERANKER_MODEL:-Qwen/Qwen3-Reranker-0.6B}
       DENSE_INDEX_URL: http://dense-index-cpp:8081
+      DENSE_SEARCH_MODE: ${DENSE_SEARCH_MODE:-hnsw}
       LEXICAL_INDEX_URL: http://lexical-index-java:8082
       RERANKER_URL: http://reranker-python:8083
+      HEALTH_TIMEOUT_SECONDS: ${HEALTH_TIMEOUT_SECONDS:-3}
+      OLLAMA_HEALTH_TIMEOUT_SECONDS: ${OLLAMA_HEALTH_TIMEOUT_SECONDS:-5}
+      EMBEDDING_TIMEOUT_SECONDS: ${EMBEDDING_TIMEOUT_SECONDS:-30}
+      INDEX_TIMEOUT_SECONDS: ${INDEX_TIMEOUT_SECONDS:-120}
+      SEARCH_TIMEOUT_SECONDS: ${SEARCH_TIMEOUT_SECONDS:-10}
+      RERANKER_TIMEOUT_SECONDS: ${RERANKER_TIMEOUT_SECONDS:-45}
+      HTTP_RETRY_COUNT: ${HTTP_RETRY_COUNT:-1}
+      CIRCUIT_BREAKER_FAILURES: ${CIRCUIT_BREAKER_FAILURES:-3}
+      CIRCUIT_BREAKER_RESET_SECONDS: ${CIRCUIT_BREAKER_RESET_SECONDS:-15}
     ports:
       - "${ORCHESTRATOR_HOST_PORT:-8090}:8080"
     volumes:
@@ -119,3 +143,4 @@ volumes:
   postgres-data:
   ollama-data:
   hf-model-cache:
+  dense-index-data:

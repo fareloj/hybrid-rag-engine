@@ -10,6 +10,10 @@ Polyglot hybrid retrieval engine:
 
 Planning docs live in `rag-hybrid-planning/`.
 
+The roadmap is complete through Stage 16. Final acceptance evidence is in
+`reports/stage16-final-acceptance.md` and machine-readable measurements are in
+`reports/stage16-final-redteam.json`.
+
 ## First Run
 
 ```powershell
@@ -136,7 +140,31 @@ Stage validation scripts:
 .\scripts\orchestrator-stage8-validate.ps1
 .\scripts\rrf-stage9-validate.ps1
 .\scripts\reranker-stage10-validate.ps1
+.\scripts\evaluation-stage11-validate.ps1
+.\scripts\observability-stage12-validate.ps1
+.\scripts\hardening-stage13-validate.ps1
+.\scripts\ann-stage14-validate.ps1
+.\scripts\api-stage15-validate.ps1
+.\scripts\final-redteam-stage16.ps1
 ```
+
+## Stable Retrieval API
+
+`POST /v1/search` is the stable contract for NAVI/CASPER. `POST /search` remains a backward-compatible alias.
+
+```json
+{
+  "query": "função que remove documentos órfãos",
+  "top_k": 5,
+  "filters": {
+    "corpus": "my-repository",
+    "path_prefix": "src/",
+    "language": "python"
+  }
+}
+```
+
+Responses include `api_version`, source/reranker scores, corpus, path, language, line range and chunk text. A standard-library client is available at `examples/hybrid_rag_client.py`.
 
 ## Local Checks
 

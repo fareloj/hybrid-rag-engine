@@ -11,23 +11,37 @@ from app.observability import log_event, safe_query
 from app.reranker import apply_rerank, rerank_candidates
 
 
-def fetch_chunks(conn: psycopg.Connection, chunk_ids: list[str]) -> dict[str, dict[str, Any]]:
+def fetch_chunks(
+    conn: psycopg.Connection,
+    chunk_ids: list[str],
+    filters: dict[str, str | None] | None = None,
+) -> dict[str, dict[str, Any]]:
     if not chunk_ids:
         return {}
+    filters = filters or {}
+    corpus = filters.get("corpus")
+    path_prefix = filters.get("path_prefix")
+    language = filters.get("language")
     rows = conn.execute(
         """
         SELECT
             c.id::text AS chunk_id,
+            r.name AS corpus,
             d.path,
             COALESCE(d.language, '') AS language,
             c.start_line,
             c.end_line,
-            c.text
+            c.text,
+            c.metadata
         FROM chunks c
         JOIN documents d ON d.id = c.document_id
+        JOIN repositories r ON r.id = d.repository_id
         WHERE c.id = ANY(%s::uuid[])
+          AND (%s::text IS NULL OR r.name = %s)
+          AND (%s::text IS NULL OR left(d.path, length(%s)) = %s)
+          AND (%s::text IS NULL OR d.language = %s)
         """,
-        (chunk_ids,),
+        (chunk_ids, corpus, corpus, path_prefix, path_prefix, path_prefix, language, language),
     ).fetchall()
     return {row["chunk_id"]: dict(row) for row in rows}
 
@@ -45,6 +59,7 @@ async def hybrid_search(
     rrf_k: int,
     rerank_top_k: int,
     use_reranker: bool,
+    filters: dict[str, str | None] | None = None,
 ) -> dict[str, Any]:
     started = time.perf_counter()
     async with httpx.AsyncClient() as client:
@@ -78,17 +93,19 @@ async def hybrid_search(
 
     fused = fuse_rrf(dense_results, lexical_results, rrf_k)
     ordered_ids = [item["chunk_id"] for item in fused]
-    metadata = fetch_chunks(conn, ordered_ids)
+    metadata = fetch_chunks(conn, ordered_ids, filters)
+    filters_active = any((filters or {}).values())
+    candidate_ids = [chunk_id for chunk_id in ordered_ids if chunk_id in metadata] if filters_active else ordered_ids
     candidate_limit = max(top_k, rerank_top_k if use_reranker else top_k)
-    candidates = consolidate_results(ordered_ids, metadata, dense_results, lexical_results, fused)[:candidate_limit]
+    candidates = consolidate_results(candidate_ids, metadata, dense_results, lexical_results, fused)[:candidate_limit]
     results = candidates[:top_k]
-    missing_metadata = [chunk_id for chunk_id in ordered_ids[:top_k] if chunk_id not in metadata]
+    missing_metadata = [] if filters_active else [chunk_id for chunk_id in ordered_ids[:top_k] if chunk_id not in metadata]
 
     reranker_payload: dict[str, Any] | None = None
     if use_reranker and candidates:
         try:
             reranker_payload = await rerank_candidates(query, candidates, rerank_top_k)
-            results = apply_rerank(candidates, reranker_payload.get("results", []), top_k)
+            results = apply_rerank(candidates, reranker_payload.get("results", []), top_k, query)
             sources["reranker"] = {
                 "ok": True,
                 "count": len(reranker_payload.get("results", [])),
@@ -105,6 +122,7 @@ async def hybrid_search(
         status="succeeded" if not source_errors else "partial",
         result_count=len(results),
         source_errors=source_errors,
+        filters_active=filters_active,
         latency_ms={
             "total": total_latency_ms,
             "dense": dense_latency_ms if "dense" in sources else None,
@@ -114,7 +132,9 @@ async def hybrid_search(
     )
 
     return {
+        "api_version": "v1",
         "query": query,
+        "filters": filters or {},
         "top_k": top_k,
         "rrf_k": rrf_k,
         "top_n_dense": dense_top_k,
@@ -224,11 +244,14 @@ def consolidate_results(
                 "rrf_score": fused_item["rrf_score"],
                 "rrf_contributions": fused_item["source_contributions"],
                 "metadata_found": True,
+                "corpus": chunk["corpus"],
                 "path": chunk["path"],
                 "language": chunk["language"],
                 "start_line": chunk["start_line"],
                 "end_line": chunk["end_line"],
                 "text": chunk["text"],
+                "content_trust": chunk.get("metadata", {}).get("content_trust", "untrusted"),
+                "security_flags": chunk.get("metadata", {}).get("security_flags", []),
                 "scores": {
                     "dense": dense.get("score") if dense else None,
                     "lexical": lexical.get("score") if lexical else None,

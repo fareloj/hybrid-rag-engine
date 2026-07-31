@@ -1,0 +1,32 @@
+﻿{
+    "status":  "passed",
+    "timestamp":  "2026-07-31T10:58:51.2405217-03:00",
+    "corpus":  {
+                   "chunks":  138,
+                   "languages":  9
+               },
+    "latency":  {
+                    "search_p95_ms":  309.64634300016769,
+                    "reranker_avg_ms":  724.8955950833155
+                },
+    "quality":  {
+                    "rerank_ndcg_at_5":  0.5577113387680257,
+                    "rrf_ndcg_at_5":  0.5301127596788988,
+                    "dense_pgvector_overlap_at_5":  5.0,
+                    "rerank_mrr":  0.5208333333333334,
+                    "hnsw_recall_at_10":  1.0,
+                    "rrf_mrr":  0.48611111111111116,
+                    "bm25_query_wins_over_dense":  3,
+                    "bm25_mrr":  0.3541666666666667,
+                    "dense_mrr":  0.5069444444444445
+                },
+    "security":  {
+                     "oversized_payload_rejected":  true,
+                     "prompt_injection_flagged":  true,
+                     "secret_redacted":  true
+                 },
+    "recovery":  {
+                     "final_health":  "ok",
+                     "simultaneous_failure_controlled":  true
+                 }
+}

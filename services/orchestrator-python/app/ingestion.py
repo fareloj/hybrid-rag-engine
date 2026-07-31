@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -62,8 +63,27 @@ IGNORED_EXTENSIONS = {
 }
 
 IGNORED_FILE_NAMES = {
+    ".env",
+    ".npmrc",
+    ".pypirc",
     "evaluation_dataset.py",
+    "final-redteam-stage16.ps1",
 }
+
+SECRET_ASSIGNMENT = re.compile(
+    r"(?im)\b(api[_-]?key|access[_-]?token|auth[_-]?token|password|secret)\b(\s*[:=]\s*)[\"']?([^\s\"']+)[\"']?"
+)
+AWS_ACCESS_KEY = re.compile(r"\b(AKIA|ASIA)[A-Z0-9]{16}\b")
+PRIVATE_KEY_BLOCK = re.compile(
+    r"-----BEGIN [^-]*PRIVATE KEY-----.*?-----END [^-]*PRIVATE KEY-----",
+    re.DOTALL,
+)
+PROMPT_INJECTION_PATTERNS = (
+    re.compile(r"ignore (all |the )?(previous|prior) instructions", re.IGNORECASE),
+    re.compile(r"system prompt", re.IGNORECASE),
+    re.compile(r"exfiltrat(e|ion)|send (the )?(secret|credential)", re.IGNORECASE),
+    re.compile(r"you are now|act as", re.IGNORECASE),
+)
 
 LANGUAGE_BY_EXTENSION = {
     ".c": "c",
@@ -154,6 +174,22 @@ def read_text_file(path: Path) -> str | None:
     return None
 
 
+def redact_sensitive_text(text: str) -> str:
+    def redact_private_key(match: re.Match[str]) -> str:
+        return "[REDACTED PRIVATE KEY]" + ("\n" * match.group(0).count("\n"))
+
+    text = PRIVATE_KEY_BLOCK.sub(redact_private_key, text)
+    text = AWS_ACCESS_KEY.sub("[REDACTED AWS ACCESS KEY]", text)
+    return SECRET_ASSIGNMENT.sub(lambda match: f"{match.group(1)}{match.group(2)}[REDACTED]", text)
+
+
+def security_flags(text: str) -> list[str]:
+    flags = []
+    if any(pattern.search(text) for pattern in PROMPT_INJECTION_PATTERNS):
+        flags.append("prompt_injection_suspected")
+    return flags
+
+
 def iter_files(root: Path) -> list[FileRecord]:
     root = root.resolve()
     records: list[FileRecord] = []
@@ -167,6 +203,7 @@ def iter_files(root: Path) -> list[FileRecord]:
             text = read_text_file(path)
             if text is None or not text.strip():
                 continue
+            text = redact_sensitive_text(text)
             relative_path = path.relative_to(root).as_posix()
             records.append(
                 FileRecord(
@@ -214,6 +251,7 @@ def ingest_repository(conn: psycopg.Connection, root_path: str, name: str | None
         "root_path": str(root),
         "files_seen": len(files),
         "documents_upserted": 0,
+        "documents_unchanged": 0,
         "documents_deleted": 0,
         "chunks_inserted": 0,
     }
@@ -240,6 +278,13 @@ def ingest_repository(conn: psycopg.Connection, root_path: str, name: str | None
 
         for file_record in files:
             document_id = stable_id("document", str(root), file_record.relative_path)
+            existing = conn.execute(
+                "SELECT content_hash FROM documents WHERE repository_id = %s AND path = %s",
+                (repo_id, file_record.relative_path),
+            ).fetchone()
+            if existing is not None and existing["content_hash"] == file_record.content_hash:
+                stats["documents_unchanged"] += 1
+                continue
             conn.execute(
                 """
                 INSERT INTO documents(id, repository_id, path, language, content_hash, size_bytes, updated_at)
@@ -281,6 +326,8 @@ def ingest_repository(conn: psycopg.Connection, root_path: str, name: str | None
                                 "repo": repo_name,
                                 "path": file_record.relative_path,
                                 "language": file_record.language or "",
+                                "content_trust": "untrusted",
+                                "security_flags": security_flags(chunk.text),
                             }
                         ),
                     ),

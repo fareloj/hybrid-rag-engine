@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 
 .env
+.venv/
 .tools/
 
 build/
@@ -12,3 +13,7 @@ out/
 
 postgres-data/
 ollama-data/
+
+stage13-*-fixture/
+stage15-*-fixture/
+stage16-*-fixture/

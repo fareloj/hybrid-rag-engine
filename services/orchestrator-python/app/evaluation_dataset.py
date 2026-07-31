@@ -47,4 +47,28 @@ CURATED_QUERIES = [
         "expected": [{"path": "rag-hybrid-planning/ROADMAP.md"}],
         "tags": ["accent", "rare", "red_team"],
     },
+    {
+        "id": "semantic_resilience",
+        "query": "what protects requests when downstream services repeatedly fail",
+        "expected": [{"path": "services/orchestrator-python/app/resilience.py", "start_line": 33, "end_line": 97}],
+        "tags": ["semantic", "natural", "resilience"],
+    },
+    {
+        "id": "semantic_fusion",
+        "query": "how are dense and lexical rankings combined",
+        "expected": [{"path": "services/orchestrator-python/app/search.py", "start_line": 163, "end_line": 203}],
+        "tags": ["semantic", "natural", "fusion"],
+    },
+    {
+        "id": "semantic_observability",
+        "query": "which middleware propagates request ids across services",
+        "expected": [{"path": "services/orchestrator-python/app/observability.py", "start_line": 43, "end_line": 69}],
+        "tags": ["semantic", "natural", "observability"],
+    },
+    {
+        "id": "semantic_hnsw_persistence",
+        "query": "how is the approximate vector index persisted after restart",
+        "expected": [{"path": "services/dense-index-cpp/src/main.cpp", "start_line": 209, "end_line": 262}],
+        "tags": ["semantic", "natural", "persistence"],
+    },
 ]

@@ -1,16 +1,23 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <hnswlib/hnswlib.h>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <netinet/in.h>
 #include <nlohmann/json.hpp>
 #include <optional>
+#include <shared_mutex>
 #include <sstream>
 #include <string>
 #include <sys/socket.h>
+#include <thread>
 #include <unistd.h>
 #include <vector>
 
@@ -24,7 +31,35 @@ struct VectorEntry {
 };
 
 std::vector<VectorEntry> g_index;
-std::mutex g_index_mutex;
+struct HnswState {
+    std::unique_ptr<hnswlib::InnerProductSpace> space;
+    std::unique_ptr<hnswlib::HierarchicalNSW<float>> index;
+    std::vector<std::string> ids;
+    std::size_t dimensions = 0;
+};
+
+std::unique_ptr<HnswState> g_hnsw;
+std::shared_mutex g_index_mutex;
+
+std::string env_string(const char* name, const std::string& fallback) {
+    const char* value = std::getenv(name);
+    return value == nullptr ? fallback : value;
+}
+
+std::size_t env_size(const char* name, std::size_t fallback, std::size_t minimum, std::size_t maximum) {
+    const char* value = std::getenv(name);
+    const auto parsed = value == nullptr ? fallback : static_cast<std::size_t>(std::stoul(value));
+    if (parsed < minimum || parsed > maximum) {
+        throw std::invalid_argument(std::string(name) + " must be between " + std::to_string(minimum) + " and " + std::to_string(maximum));
+    }
+    return parsed;
+}
+
+const std::string g_default_mode = env_string("DENSE_SEARCH_MODE", "hnsw");
+const std::string g_storage_path = env_string("DENSE_INDEX_STORAGE_PATH", "/data");
+const std::size_t g_hnsw_m = env_size("HNSW_M", 16, 2, 100);
+const std::size_t g_hnsw_ef_construction = env_size("HNSW_EF_CONSTRUCTION", 200, 10, 10'000);
+const std::size_t g_hnsw_ef_search = env_size("HNSW_EF_SEARCH", 100, 1, 10'000);
 
 int read_port() {
     const char* value = std::getenv("DENSE_INDEX_PORT");
@@ -144,6 +179,88 @@ bool is_valid_vector(const std::vector<float>& values) {
     });
 }
 
+std::filesystem::path index_file() {
+    return std::filesystem::path(g_storage_path) / "hnsw.bin";
+}
+
+std::filesystem::path manifest_file() {
+    return std::filesystem::path(g_storage_path) / "manifest.json";
+}
+
+std::unique_ptr<HnswState> build_hnsw(const std::vector<VectorEntry>& vectors) {
+    if (vectors.empty()) {
+        return nullptr;
+    }
+    auto state = std::make_unique<HnswState>();
+    state->dimensions = vectors.front().values.size();
+    state->space = std::make_unique<hnswlib::InnerProductSpace>(state->dimensions);
+    state->index = std::make_unique<hnswlib::HierarchicalNSW<float>>(
+        state->space.get(), vectors.size(), g_hnsw_m, g_hnsw_ef_construction
+    );
+    state->ids.reserve(vectors.size());
+    for (std::size_t label = 0; label < vectors.size(); ++label) {
+        state->index->addPoint(vectors[label].values.data(), label);
+        state->ids.push_back(vectors[label].chunk_id);
+    }
+    state->index->setEf(g_hnsw_ef_search);
+    return state;
+}
+
+void persist_hnsw(const HnswState* state) {
+    std::filesystem::create_directories(g_storage_path);
+    if (state == nullptr) {
+        std::filesystem::remove(index_file());
+        std::filesystem::remove(manifest_file());
+        return;
+    }
+
+    const auto index_temp = index_file().string() + ".tmp";
+    const auto manifest_temp = manifest_file().string() + ".tmp";
+    state->index->saveIndex(index_temp);
+    std::ofstream output(manifest_temp, std::ios::trunc);
+    if (!output) {
+        throw std::runtime_error("cannot write HNSW manifest");
+    }
+    output << json({
+        {"dimensions", state->dimensions},
+        {"ids", state->ids},
+        {"m", g_hnsw_m},
+        {"ef_construction", g_hnsw_ef_construction},
+        {"ef_search", g_hnsw_ef_search}
+    }).dump();
+    output.close();
+    std::filesystem::remove(index_file());
+    std::filesystem::remove(manifest_file());
+    std::filesystem::rename(index_temp, index_file());
+    std::filesystem::rename(manifest_temp, manifest_file());
+}
+
+void load_persisted_hnsw() {
+    if (!std::filesystem::exists(index_file()) || !std::filesystem::exists(manifest_file())) {
+        return;
+    }
+    std::ifstream input(manifest_file());
+    const json manifest = json::parse(input);
+    auto state = std::make_unique<HnswState>();
+    state->dimensions = manifest.at("dimensions").get<std::size_t>();
+    state->ids = manifest.at("ids").get<std::vector<std::string>>();
+    state->space = std::make_unique<hnswlib::InnerProductSpace>(state->dimensions);
+    state->index = std::make_unique<hnswlib::HierarchicalNSW<float>>(state->space.get(), index_file().string());
+    state->index->setEf(g_hnsw_ef_search);
+    if (state->index->getCurrentElementCount() != state->ids.size()) {
+        throw std::runtime_error("persisted HNSW manifest count mismatch");
+    }
+
+    std::vector<VectorEntry> restored;
+    restored.reserve(state->ids.size());
+    for (std::size_t label = 0; label < state->ids.size(); ++label) {
+        restored.push_back({state->ids[label], state->index->getDataByLabel<float>(label)});
+    }
+    g_index = std::move(restored);
+    g_hnsw = std::move(state);
+    std::cout << "{\"event\":\"dense_index_loaded\",\"indexed\":" << g_index.size() << "}" << std::endl;
+}
+
 json handle_index(const json& payload) {
     std::vector<VectorEntry> next_index;
     for (const auto& item : payload.at("vectors")) {
@@ -159,39 +276,75 @@ json handle_index(const json& payload) {
         next_index.push_back(std::move(entry));
     }
 
+    auto next_hnsw = build_hnsw(next_index);
+    persist_hnsw(next_hnsw.get());
     const auto indexed_count = next_index.size();
     const auto dimensions = next_index.empty() ? 0 : next_index.front().values.size();
     {
-        std::scoped_lock lock(g_index_mutex);
+        std::unique_lock lock(g_index_mutex);
         g_index = std::move(next_index);
+        g_hnsw = std::move(next_hnsw);
     }
 
     return {
         {"status", "ok"},
         {"indexed", indexed_count},
-        {"dimensions", dimensions}
+        {"dimensions", dimensions},
+        {"modes", {"linear", "hnsw"}},
+        {"default_mode", g_default_mode}
     };
 }
 
 json handle_search(const json& payload) {
+    const auto started = std::chrono::steady_clock::now();
+    const auto elapsed_ms = [&started]() {
+        return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
+    };
     const auto query = payload.at("embedding").get<std::vector<float>>();
-    const auto top_k = std::max(0, payload.value("top_k", 10));
+    const auto top_k = std::clamp(payload.value("top_k", 10), 0, 1000);
+    const auto mode = payload.value("mode", g_default_mode);
     if (!is_valid_vector(query)) {
         throw std::invalid_argument("invalid query vector");
     }
-
-    std::vector<std::pair<std::string, double>> scored;
-    {
-        std::scoped_lock lock(g_index_mutex);
-        if (!g_index.empty() && g_index.front().values.size() != query.size()) {
-            throw std::invalid_argument("query vector dimension does not match index dimension");
-        }
-        scored.reserve(g_index.size());
-        for (const auto& entry : g_index) {
-            scored.emplace_back(entry.chunk_id, dot_product(query, entry.values));
-        }
+    if (mode != "linear" && mode != "hnsw") {
+        throw std::invalid_argument("mode must be linear or hnsw");
     }
 
+    std::shared_lock lock(g_index_mutex);
+    if (!g_index.empty() && g_index.front().values.size() != query.size()) {
+        throw std::invalid_argument("query vector dimension does not match index dimension");
+    }
+    const auto limit = std::min<std::size_t>(static_cast<std::size_t>(top_k), g_index.size());
+    json results = json::array();
+
+    if (mode == "hnsw" && g_hnsw != nullptr && limit > 0) {
+        auto neighbors = g_hnsw->index->searchKnn(query.data(), limit);
+        std::vector<std::pair<float, hnswlib::labeltype>> ordered;
+        ordered.reserve(neighbors.size());
+        while (!neighbors.empty()) {
+            ordered.push_back(neighbors.top());
+            neighbors.pop();
+        }
+        std::reverse(ordered.begin(), ordered.end());
+        for (std::size_t rank = 0; rank < ordered.size(); ++rank) {
+            const auto [distance, label] = ordered[rank];
+            results.push_back({
+                {"chunk_id", g_hnsw->ids.at(label)},
+                {"score", 1.0 - static_cast<double>(distance)},
+                {"rank", rank + 1},
+                {"source", "dense-cpp-hnsw"}
+            });
+        }
+        return {{"mode", mode}, {"latency_ms", elapsed_ms()}, {"results", results}};
+    }
+
+    std::vector<std::pair<std::string, double>> scored;
+    scored.reserve(g_index.size());
+    for (const auto& entry : g_index) {
+        scored.emplace_back(entry.chunk_id, dot_product(query, entry.values));
+    }
+
+    lock.unlock();
     std::sort(scored.begin(), scored.end(), [](const auto& left, const auto& right) {
         if (left.second == right.second) {
             return left.first < right.first;
@@ -199,8 +352,6 @@ json handle_search(const json& payload) {
         return left.second > right.second;
     });
 
-    json results = json::array();
-    const auto limit = std::min<std::size_t>(static_cast<std::size_t>(top_k), scored.size());
     for (std::size_t index = 0; index < limit; ++index) {
         results.push_back({
             {"chunk_id", scored[index].first},
@@ -209,7 +360,7 @@ json handle_search(const json& payload) {
             {"source", "dense-cpp-linear"}
         });
     }
-    return {{"results", results}};
+    return {{"mode", "linear"}, {"latency_ms", elapsed_ms()}, {"results", results}};
 }
 
 }  // namespace
@@ -242,6 +393,14 @@ int main() {
         return 1;
     }
 
+    try {
+        load_persisted_hnsw();
+    } catch (const std::exception& error) {
+        std::cerr << "{\"event\":\"dense_index_load_failed\",\"error\":\"" << error.what() << "\"}" << std::endl;
+        g_index.clear();
+        g_hnsw.reset();
+    }
+
     std::cout << "dense-index-cpp listening on " << port << "\n";
 
     while (true) {
@@ -250,42 +409,52 @@ int main() {
             continue;
         }
 
-        const std::string request = read_request(client_fd);
-        if (request.empty()) {
-            close(client_fd);
-            continue;
-        }
-
-        const std::string method = request_method(request);
-        const std::string path = request_path(request);
-        const std::string request_id = request_header(request, "X-Request-ID");
-        std::cout << "{\"event\":\"dense_request\",\"request_id\":\"" << request_id
-                  << "\",\"method\":\"" << method << "\",\"path\":\"" << path << "\"}" << std::endl;
-        try {
-            if (method == "GET" && path == "/health") {
-                json body;
-                {
-                    std::scoped_lock lock(g_index_mutex);
-                    body = {
-                        {"status", "ok"},
-                        {"service", "dense-index-cpp"},
-                        {"indexed", g_index.size()},
-                        {"dimensions", g_index.empty() ? 0 : g_index.front().values.size()}
-                    };
-                }
-                send_response(client_fd, "200 OK", "application/json", body.dump());
-            } else if (method == "POST" && path == "/index") {
-                send_response(client_fd, "200 OK", "application/json", handle_index(json::parse(request_body(request))).dump());
-            } else if (method == "POST" && path == "/search") {
-                send_response(client_fd, "200 OK", "application/json", handle_search(json::parse(request_body(request))).dump());
-            } else {
-                send_response(client_fd, "404 Not Found", "application/json", R"({"status":"not_found"})");
+        std::thread([client_fd]() {
+            const std::string request = read_request(client_fd);
+            if (request.empty()) {
+                close(client_fd);
+                return;
             }
-        } catch (const std::exception& error) {
-            json body = {{"status", "error"}, {"error", error.what()}};
-            send_response(client_fd, "400 Bad Request", "application/json", body.dump());
-        }
 
-        close(client_fd);
+            const std::string method = request_method(request);
+            const std::string path = request_path(request);
+            const std::string request_id = request_header(request, "X-Request-ID");
+            std::cout << "{\"event\":\"dense_request\",\"request_id\":\"" << request_id
+                      << "\",\"method\":\"" << method << "\",\"path\":\"" << path << "\"}" << std::endl;
+            try {
+                if (method == "GET" && path == "/health") {
+                    json body;
+                    {
+                        std::shared_lock lock(g_index_mutex);
+                        body = {
+                            {"status", "ok"},
+                            {"service", "dense-index-cpp"},
+                            {"indexed", g_index.size()},
+                            {"dimensions", g_index.empty() ? 0 : g_index.front().values.size()},
+                            {"default_mode", g_default_mode},
+                            {"modes", {"linear", "hnsw"}},
+                            {"hnsw", {
+                                {"loaded", g_hnsw != nullptr},
+                                {"m", g_hnsw_m},
+                                {"ef_construction", g_hnsw_ef_construction},
+                                {"ef_search", g_hnsw_ef_search}
+                            }}
+                        };
+                    }
+                    send_response(client_fd, "200 OK", "application/json", body.dump());
+                } else if (method == "POST" && path == "/index") {
+                    send_response(client_fd, "200 OK", "application/json", handle_index(json::parse(request_body(request))).dump());
+                } else if (method == "POST" && path == "/search") {
+                    send_response(client_fd, "200 OK", "application/json", handle_search(json::parse(request_body(request))).dump());
+                } else {
+                    send_response(client_fd, "404 Not Found", "application/json", R"({"status":"not_found"})");
+                }
+            } catch (const std::exception& error) {
+                json body = {{"status", "error"}, {"error", error.what()}};
+                send_response(client_fd, "400 Bad Request", "application/json", body.dump());
+            }
+
+            close(client_fd);
+        }).detach();
     }
 }

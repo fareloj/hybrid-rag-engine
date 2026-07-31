@@ -467,3 +467,16 @@ O projeto está pronto quando:
 - Reranker melhora ranking final em queries curadas.
 - Red teams por etapa e final foram executados.
 - NAVI/CASPER conseguem consumir a API sem conhecer detalhes internos.
+
+## Status de Execucao
+
+Todas as etapas 1 a 16 foram implementadas e validadas. Os scripts reproduziveis
+de aceite estao em `scripts/`, e as evidencias consolidadas das etapas finais
+estao em `reports/`.
+
+- Etapas 1 a 10: infraestrutura, ingestao, embeddings, dense, BM25, orquestracao, RRF e reranker concluidos.
+- Etapas 11 e 12: avaliacao curada e observabilidade concluidas.
+- Etapa 13: hardening concluido; evidencia em `reports/stage13-hardening.md`.
+- Etapa 14: HNSW concluido; evidencia em `reports/stage14-ann.md`.
+- Etapa 15: API reutilizavel concluida; evidencia em `reports/stage15-api.md`.
+- Etapa 16: red team final aprovado; evidencia em `reports/stage16-final-acceptance.md`.

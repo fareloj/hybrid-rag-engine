@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 Write-Host "Checking Python orchestrator imports..."
 Push-Location "$PSScriptRoot\..\services\orchestrator-python"
 try {
-    python -c "from pathlib import Path; [compile(path.read_text(encoding='utf-8'), str(path), 'exec') for path in [Path('app/__init__.py'), Path('app/config.py'), Path('app/db.py'), Path('app/dense_index.py'), Path('app/embeddings.py'), Path('app/ingestion.py'), Path('app/lexical_index.py'), Path('app/main.py'), Path('tests/test_dense_index.py'), Path('tests/test_embeddings.py'), Path('tests/test_ingestion.py')]]"
+    python -c "from pathlib import Path; [compile(path.read_text(encoding='utf-8'), str(path), 'exec') for path in [*Path('app').glob('*.py'), *Path('tests').glob('test_*.py')]]"
 } finally {
     Pop-Location
 }

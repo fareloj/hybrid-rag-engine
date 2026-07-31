@@ -15,11 +15,22 @@ from app.lexical_index import search_lexical
 from app.search import hybrid_search
 
 
-def path_matches(result: dict[str, Any], expected: list[dict[str, Any]]) -> bool:
-    result_path = result.get("path")
-    if not result_path:
+def expected_item_matches(result: dict[str, Any], expected: dict[str, Any]) -> bool:
+    if result.get("path") != expected.get("path"):
         return False
-    return any(item["path"] == result_path for item in expected)
+    expected_start = expected.get("start_line")
+    expected_end = expected.get("end_line")
+    if expected_start is None or expected_end is None:
+        return True
+    result_start = result.get("start_line")
+    result_end = result.get("end_line")
+    if result_start is None or result_end is None:
+        return False
+    return result_start <= expected_end and result_end >= expected_start
+
+
+def path_matches(result: dict[str, Any], expected: list[dict[str, Any]]) -> bool:
+    return any(expected_item_matches(result, item) for item in expected)
 
 
 def relevance(result: dict[str, Any], expected: list[dict[str, Any]]) -> float:
@@ -29,25 +40,15 @@ def relevance(result: dict[str, Any], expected: list[dict[str, Any]]) -> float:
     for item in expected:
         if item["path"] != result_path:
             continue
-        expected_start = item.get("start_line")
-        expected_end = item.get("end_line")
-        if expected_start is None or expected_end is None:
-            return 1.0
-        result_start = result.get("start_line")
-        result_end = result.get("end_line")
-        if result_start is None or result_end is None:
-            return 0.5
-        overlaps = result_start <= expected_end and result_end >= expected_start
-        return 1.0 if overlaps else 0.5
+        return 1.0 if expected_item_matches(result, item) else 0.0
     return 0.0
 
 
 def recall_at_k(results: list[dict[str, Any]], expected: list[dict[str, Any]], k: int) -> float:
     if not expected:
         return 0.0
-    matched = {item.get("path") for item in results[:k] if path_matches(item, expected)}
-    expected_paths = {item["path"] for item in expected}
-    return len(matched & expected_paths) / len(expected_paths)
+    matched = sum(any(expected_item_matches(result, item) for result in results[:k]) for item in expected)
+    return matched / len(expected)
 
 
 def mrr(results: list[dict[str, Any]], expected: list[dict[str, Any]]) -> float:
@@ -58,18 +59,30 @@ def mrr(results: list[dict[str, Any]], expected: list[dict[str, Any]]) -> float:
 
 
 def ndcg_at_k(results: list[dict[str, Any]], expected: list[dict[str, Any]], k: int) -> float:
-    seen_paths: set[str] = set()
+    seen_chunks: set[str] = set()
+    matched_expected: set[int] = set()
     gains = []
     for result in results[:k]:
-        path = result.get("path")
-        if path in seen_paths:
+        chunk_key = result.get("chunk_id") or f"{result.get('path')}:{result.get('start_line')}:{result.get('end_line')}"
+        if chunk_key in seen_chunks:
             gains.append(0.0)
             continue
-        if path:
-            seen_paths.add(path)
-        gains.append(relevance(result, expected))
+        seen_chunks.add(chunk_key)
+        matched_index = next(
+            (
+                index
+                for index, item in enumerate(expected)
+                if index not in matched_expected and expected_item_matches(result, item)
+            ),
+            None,
+        )
+        if matched_index is None:
+            gains.append(0.0)
+        else:
+            matched_expected.add(matched_index)
+            gains.append(1.0)
     dcg = sum(gain / math.log2(index + 2) for index, gain in enumerate(gains))
-    ideal_gains = sorted([1.0 for _ in {item["path"] for item in expected}], reverse=True)[:k]
+    ideal_gains = [1.0 for _ in expected[:k]]
     idcg = sum(gain / math.log2(index + 2) for index, gain in enumerate(ideal_gains))
     return dcg / idcg if idcg else 0.0
 
@@ -153,14 +166,14 @@ async def run_curated_evaluation(conn: psycopg.Connection, top_k: int = 5, inclu
             bm25_latency = (time.perf_counter() - started) * 1000
 
             started = time.perf_counter()
-            mode_results["rrf"] = (await hybrid_search(conn, query, top_k, 10, 10, 60, top_k, False)).get("results", [])
+            mode_results["rrf"] = (await hybrid_search(conn, query, top_k, 20, 20, 60, 20, False)).get("results", [])
             rrf_latency = (time.perf_counter() - started) * 1000
 
             latencies = {"dense_cpp": dense_latency, "pgvector": pg_latency, "bm25": bm25_latency, "rrf": rrf_latency}
 
             if include_reranker:
                 started = time.perf_counter()
-                mode_results["rerank"] = (await hybrid_search(conn, query, top_k, 10, 10, 60, top_k, True)).get("results", [])
+                mode_results["rerank"] = (await hybrid_search(conn, query, top_k, 20, 20, 60, 20, True)).get("results", [])
                 latencies["rerank"] = (time.perf_counter() - started) * 1000
 
             for mode in modes:

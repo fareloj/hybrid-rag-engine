@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     max_sequence_length: int = 256
     reranker_batch_size: int = 1
     reranker_device: str = "auto"
+    reranker_instruction: str = (
+        "Given a software repository search query, retrieve source code or technical documentation "
+        "that directly matches the requested symbol, file, endpoint, behavior, date, or requirement"
+    )
 
 
 class RerankDocument(BaseModel):
@@ -61,7 +65,13 @@ def model() -> Any:
             "sentence-transformers is not installed. Install requirements-ml.txt "
             "when implementing the reranker phase."
         ) from exc
-    return CrossEncoder(settings.reranker_model, max_length=settings.max_sequence_length, device=resolve_device())
+    return CrossEncoder(
+        settings.reranker_model,
+        max_length=settings.max_sequence_length,
+        device=resolve_device(),
+        prompts={"repository_retrieval": settings.reranker_instruction},
+        default_prompt_name="repository_retrieval",
+    )
 
 
 def predict_scores(pairs: list[tuple[str, str]]) -> Any:
@@ -79,6 +89,7 @@ async def health() -> dict[str, Any]:
         "max_sequence_length": settings.max_sequence_length,
         "max_document_chars": settings.max_document_chars,
         "batch_size": settings.reranker_batch_size,
+        "prompt": "repository_retrieval",
     }
 
 

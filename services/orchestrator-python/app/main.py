@@ -7,13 +7,14 @@ from pydantic import BaseModel, Field
 from psycopg import Connection
 
 from app.config import settings
-from app.dense_index import benchmark_dense, compare_dense_for_chunk, reindex_dense
+from app.dense_index import benchmark_ann, benchmark_dense, compare_dense_for_chunk, reindex_dense
 from app.db import connection
 from app.embeddings import embed_pending_chunks
 from app.evaluation import run_curated_evaluation
 from app.ingestion import ingest_repository
 from app.lexical_index import reindex_lexical, search_lexical
 from app.observability import log_event, request_id_middleware
+from app.resilience import CircuitOpenError
 from app.search import hybrid_search
 
 app = FastAPI(title="Hybrid RAG Orchestrator", version="0.1.0")
@@ -39,21 +40,33 @@ class DenseBenchmarkRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=100)
 
 
-class LexicalSearchRequest(BaseModel):
-    query: str = ""
+class AnnBenchmarkRequest(BaseModel):
+    sample_size: int = Field(default=20, ge=1, le=1_000)
     top_k: int = Field(default=10, ge=1, le=100)
 
 
+class LexicalSearchRequest(BaseModel):
+    query: str = Field(default="", max_length=settings.max_query_chars)
+    top_k: int = Field(default=10, ge=1, le=100)
+
+
+class SearchFilters(BaseModel):
+    corpus: str | None = Field(default=None, min_length=1, max_length=200)
+    path_prefix: str | None = Field(default=None, min_length=1, max_length=1_000)
+    language: str | None = Field(default=None, min_length=1, max_length=50)
+
+
 class SearchRequest(BaseModel):
-    query: str = Field(..., min_length=1, max_length=8_000)
+    query: str = Field(..., min_length=1, max_length=settings.max_query_chars)
     top_k: int = Field(default=10, ge=1, le=50)
-    dense_top_k: int = Field(default=10, ge=1, le=100)
-    lexical_top_k: int = Field(default=10, ge=1, le=100)
+    dense_top_k: int = Field(default=20, ge=1, le=100)
+    lexical_top_k: int = Field(default=20, ge=1, le=100)
     top_n_dense: int | None = Field(default=None, ge=1, le=100)
     top_n_lexical: int | None = Field(default=None, ge=1, le=100)
     rrf_k: int = Field(default=60, ge=1, le=1_000)
     use_reranker: bool = True
-    rerank_top_k: int = Field(default=10, ge=1, le=64)
+    rerank_top_k: int = Field(default=20, ge=1, le=settings.max_rerank_candidates)
+    filters: SearchFilters = Field(default_factory=SearchFilters)
 
 
 class EvaluateRequest(BaseModel):
@@ -63,7 +76,7 @@ class EvaluateRequest(BaseModel):
 
 async def check_http_json(client: httpx.AsyncClient, url: str) -> dict[str, Any]:
     try:
-        response = await client.get(url, timeout=3.0)
+        response = await client.get(url, timeout=settings.health_timeout_seconds)
         return {
             "ok": response.is_success,
             "status_code": response.status_code,
@@ -75,7 +88,10 @@ async def check_http_json(client: httpx.AsyncClient, url: str) -> dict[str, Any]
 
 async def check_ollama(client: httpx.AsyncClient) -> dict[str, Any]:
     try:
-        response = await client.get(f"{settings.ollama_base_url}/api/tags", timeout=5.0)
+        response = await client.get(
+            f"{settings.ollama_base_url}/api/tags",
+            timeout=settings.ollama_health_timeout_seconds,
+        )
         response.raise_for_status()
         payload = response.json()
         model_names = {model.get("name") for model in payload.get("models", [])}
@@ -134,6 +150,8 @@ async def embed(request: EmbedRequest, conn: Connection = Depends(connection)) -
     except httpx.HTTPStatusError as exc:
         detail = exc.response.text
         raise HTTPException(status_code=502, detail=f"Ollama embedding request failed: {detail}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Ollama embedding unavailable: {exc}") from exc
     except ValueError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     log_event("embed_completed", stats=result)
@@ -146,6 +164,8 @@ async def dense_reindex(conn: Connection = Depends(connection)) -> dict[str, Any
         result = await reindex_dense(conn)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Dense index request failed: {exc.response.text}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Dense index unavailable: {exc}") from exc
     dense_status = result.pop("status", "unknown")
     log_event("dense_reindex_completed", dense_status=dense_status, stats=result)
     return {"status": "succeeded", "dense_status": dense_status, **result}
@@ -157,6 +177,8 @@ async def dense_compare(request: DenseCompareRequest, conn: Connection = Depends
         return {"status": "succeeded", **await compare_dense_for_chunk(conn, request.chunk_id, request.top_k)}
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Dense index request failed: {exc.response.text}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Dense index unavailable: {exc}") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -167,8 +189,20 @@ async def dense_benchmark(request: DenseBenchmarkRequest, conn: Connection = Dep
         return {"status": "succeeded", **await benchmark_dense(conn, request.sample_size, request.top_k)}
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Dense index request failed: {exc.response.text}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Dense index unavailable: {exc}") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/dense/ann/benchmark")
+async def dense_ann_benchmark(request: AnnBenchmarkRequest, conn: Connection = Depends(connection)) -> dict[str, Any]:
+    try:
+        return {"status": "succeeded", **await benchmark_ann(conn, request.sample_size, request.top_k)}
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(status_code=502, detail=f"Dense ANN request failed: {exc.response.text}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Dense ANN unavailable: {exc}") from exc
 
 
 @app.post("/lexical/reindex")
@@ -177,6 +211,8 @@ async def lexical_reindex(conn: Connection = Depends(connection)) -> dict[str, A
         result = await reindex_lexical(conn)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Lexical index request failed: {exc.response.text}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Lexical index unavailable: {exc}") from exc
     lexical_status = result.pop("status", "unknown")
     log_event("lexical_reindex_completed", lexical_status=lexical_status, stats=result)
     return {"status": "succeeded", "lexical_status": lexical_status, **result}
@@ -188,9 +224,12 @@ async def lexical_search(request: LexicalSearchRequest) -> dict[str, Any]:
         return {"status": "succeeded", **await search_lexical(request.query, request.top_k)}
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Lexical index request failed: {exc.response.text}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Lexical index unavailable: {exc}") from exc
 
 
 @app.post("/search")
+@app.post("/v1/search")
 async def search(request: SearchRequest, conn: Connection = Depends(connection)) -> dict[str, Any]:
     stripped_query = request.query.strip()
     if not stripped_query:
@@ -198,6 +237,9 @@ async def search(request: SearchRequest, conn: Connection = Depends(connection))
     try:
         dense_top_k = request.top_n_dense if request.top_n_dense is not None else request.dense_top_k
         lexical_top_k = request.top_n_lexical if request.top_n_lexical is not None else request.lexical_top_k
+        if any(request.filters.model_dump().values()):
+            dense_top_k = max(dense_top_k, 100)
+            lexical_top_k = max(lexical_top_k, 100)
         return await hybrid_search(
             conn,
             stripped_query,
@@ -207,10 +249,13 @@ async def search(request: SearchRequest, conn: Connection = Depends(connection))
             request.rrf_k,
             request.rerank_top_k,
             request.use_reranker,
+            request.filters.model_dump(),
         )
     except httpx.HTTPStatusError as exc:
         detail = exc.response.text
         raise HTTPException(status_code=502, detail=f"Search dependency request failed: {detail}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Search dependency unavailable: {exc}") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -221,5 +266,7 @@ async def evaluate(request: EvaluateRequest, conn: Connection = Depends(connecti
         return {"status": "succeeded", **await run_curated_evaluation(conn, request.top_k, request.include_reranker)}
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=502, detail=f"Evaluation dependency request failed: {exc.response.text}") from exc
+    except (httpx.RequestError, CircuitOpenError) as exc:
+        raise HTTPException(status_code=503, detail=f"Evaluation dependency unavailable: {exc}") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

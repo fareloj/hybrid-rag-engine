@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field, HttpUrl, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -14,12 +16,15 @@ class Settings(BaseSettings):
     chunk_max_lines: int = Field(default=120, ge=1, le=2_000)
     max_query_chars: int = Field(default=8_000, ge=1, le=50_000)
     max_rerank_candidates: int = Field(default=64, ge=1, le=256)
+    reranker_rrf_weight: float = Field(default=0.3, ge=0, le=1)
+    reranker_exact_rrf_weight: float = Field(default=0.95, ge=0, le=1)
 
     ollama_base_url: str = "http://ollama:11434"
     embedding_model: str = "qwen3-embedding:0.6b"
     reranker_model: str = "Qwen/Qwen3-Reranker-0.6B"
 
     dense_index_url: str = "http://dense-index-cpp:8081"
+    dense_search_mode: Literal["linear", "hnsw"] = "hnsw"
     lexical_index_url: str = "http://lexical-index-java:8082"
     reranker_url: str = "http://reranker-python:8083"
 

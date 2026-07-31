@@ -79,7 +79,9 @@ async def request_json(
             return response.json()
         except httpx.HTTPStatusError as exc:
             last_error = exc
-            if exc.response.status_code < 500 or attempt >= attempts:
+            if exc.response.status_code < 500:
+                raise
+            if attempt >= attempts:
                 _record_failure(service, exc)
                 raise
         except (httpx.TimeoutException, httpx.TransportError) as exc:
