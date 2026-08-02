@@ -470,7 +470,7 @@ O projeto está pronto quando:
 
 ## Status de Execucao
 
-Todas as etapas 1 a 16 foram implementadas e validadas. Os scripts reproduziveis
+Todas as etapas 1 a 17 foram implementadas e validadas. Os scripts reproduziveis
 de aceite estao em `scripts/`, e as evidencias consolidadas das etapas finais
 estao em `reports/`.
 
@@ -480,3 +480,33 @@ estao em `reports/`.
 - Etapa 14: HNSW concluido; evidencia em `reports/stage14-ann.md`.
 - Etapa 15: API reutilizavel concluida; evidencia em `reports/stage15-api.md`.
 - Etapa 16: red team final aprovado; evidencia em `reports/stage16-final-acceptance.md`.
+- Etapa 17: carga e capacidade aprovadas; evidencia em `reports/stage17-load-test.md`.
+
+## 17. Carga Sustentada e Capacidade
+
+### Fazer
+
+- Medir throughput, p50, p95, p99, erros e respostas parciais.
+- Executar escadas de concorrencia com e sem reranker.
+- Observar CPU, memoria e GPU durante a carga.
+- Definir capacidade por SLO, nao apenas por ausencia de erros.
+
+### Testar
+
+- Busca comum com concorrencia de 1 a 40.
+- Reranking completo com concorrencia de 1 a 8.
+- Trafego misto e busca durante rebuild dos dois indices.
+- Soak test sustentado por 180 segundos.
+
+### Red team
+
+- Saturar o caminho de embedding.
+- Saturar GPU e reranker.
+- Manter carga durante reindexacao.
+- Confirmar saude e integridade do corpus ao final.
+
+### Aceite
+
+- Zero erros na bateria de referencia.
+- Ao menos um nivel concorrente atende p95 de 5 segundos com e sem reranking.
+- Limite recomendado e ponto de sobrecarga ficam documentados.

@@ -198,11 +198,37 @@ The final validated run recorded:
 These values describe the included curated corpus and should not be treated as
 general-purpose benchmarks. Production corpora need their own relevance set.
 
+### Load characterization
+
+Stage 17 exercised the running stack with 800 indexed chunks on an RTX 3060
+12 GB. It covered concurrency ramps, fully reranked traffic, a mixed workload,
+search during simultaneous dense/BM25 rebuilds, and a three-minute soak test.
+
+| Scenario | Requests | Throughput | p95 | Errors |
+| --- | ---: | ---: | ---: | ---: |
+| Search, concurrency 1 | `100` | `3.79 req/s` | `283 ms` | `0` |
+| Search, concurrency 5 | `100` | `9.58 req/s` | `566 ms` | `0` |
+| Search, concurrency 10 | `100` | `9.58 req/s` | `1,185 ms` | `0` |
+| Search, concurrency 20 | `200` | `5.98 req/s` | `15,440 ms` | `0` |
+| Search, concurrency 40 | `400` | `7.69 req/s` | `17,525 ms` | `0` |
+| Reranked, concurrency 8 | `40` | `1.75 req/s` | `4,975 ms` | `0` |
+| Mixed, concurrency 12 and 20% reranked | `240` | `6.07 req/s` | `2,449 ms` | `0` |
+| Reindexing, concurrency 10 | `160` | `8.76 req/s` | `1,794 ms` | `0` |
+| Soak, concurrency 10 and 10% reranked | `1,646` | `9.03 req/s` | `1,677 ms` | `0` |
+
+The tested capacity objective was the highest concurrency with at most 1%
+errors, no partial responses, and p95 at or below five seconds. On this host it
+was 10 concurrent standard searches and 8 concurrent reranked searches. The
+40-connection scenario remained correct but queued heavily, so it is not a
+recommended operating point. Peak observed GPU usage was 4,619 MiB with 99%
+utilization.
+
 Run local checks and the final adversarial suite with:
 
 ```powershell
 .\scripts\check.ps1
 .\scripts\final-redteam-stage16.ps1
+.\scripts\load-stage17-validate.ps1
 ```
 
 The stage-specific scripts cover ingestion, embeddings, dense baselines, BM25,
@@ -243,6 +269,8 @@ consumes the versioned search API and remains separate from retrieval internals.
 - [`rag-hybrid-planning/ROADMAP.md`](rag-hybrid-planning/ROADMAP.md): implementation stages and acceptance criteria
 - [`reports/stage16-final-acceptance.md`](reports/stage16-final-acceptance.md): final acceptance summary
 - [`reports/stage16-final-redteam.json`](reports/stage16-final-redteam.json): machine-readable final measurements
+- [`reports/stage17-load-test.md`](reports/stage17-load-test.md): load-test interpretation and acceptance
+- [`reports/stage17-load-test.json`](reports/stage17-load-test.json): complete per-scenario load measurements
 
 ## Known Limitations
 
@@ -251,8 +279,16 @@ consumes the versioned search API and remains separate from retrieval internals.
 - The lexical index is rebuilt from PostgreSQL rather than persisted separately.
 - Relevance weights are calibrated for the included dataset and may require
   adjustment for a substantially different corpus.
+- Load limits are hardware-, corpus- and configuration-specific; rerun Stage 17
+  before adopting the measured concurrency limits on another host.
 - This repository provides retrieval and ranking; answer generation belongs to
   the consuming application or agent.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). You may use, modify and
+distribute the project under its terms. Third-party models and dependencies
+retain their respective licenses.
 
 ## Acknowledgment
 

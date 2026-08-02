@@ -1,0 +1,701 @@
+﻿{
+    "status":  "passed",
+    "timestamp":  "2026-08-01T22:27:37.5647920-03:00",
+    "corpus":  {
+                   "indexed_chunks":  800
+               },
+    "acceptance":  {
+                       "soak_duration_seconds":  180,
+                       "rerank_concurrency_at_p95_5s":  8,
+                       "final_health":  "ok",
+                       "total_requests":  3106,
+                       "total_errors":  0,
+                       "search_concurrency_at_p95_5s":  10
+                   },
+    "scenarios":  [
+                      {
+                          "scenario":  "search-c1",
+                          "timestamp":  "2026-08-01T22:20:02-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  1,
+                                                "requested_requests":  100,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  0.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  100,
+                                          "reranked_requests":  0,
+                                          "successes":  100,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  26.363797300000442,
+                                          "throughput_rps":  3.7930802934825447,
+                                          "latency_ms":  {
+                                                             "min":  208.78190000075847,
+                                                             "mean":  246.93000700033735,
+                                                             "p50":  242.5842999946326,
+                                                             "p95":  283.26080000260845,
+                                                             "p99":  341.8757000035839,
+                                                             "max":  363.3817999943858
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  7,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  10.47,
+                                                                               "hybrid-rag-orchestrator-python-1":  25.97,
+                                                                               "hybrid-rag-dense-index-cpp-1":  0.5,
+                                                                               "hybrid-rag-lexical-index-java-1":  1.46,
+                                                                               "hybrid-rag-ollama-1":  211.59,
+                                                                               "hybrid-rag-reranker-python-1":  11.14
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  28751953,
+                                                                                "hybrid-rag-orchestrator-python-1":  56832819,
+                                                                                "hybrid-rag-dense-index-cpp-1":  12467568,
+                                                                                "hybrid-rag-lexical-index-java-1":  85500887,
+                                                                                "hybrid-rag-ollama-1":  1934882766,
+                                                                                "hybrid-rag-reranker-python-1":  1232655613
+                                                                            },
+                                            "peak_gpu_memory_mib":  2981.0,
+                                            "peak_gpu_utilization_percent":  42.0,
+                                            "peak_gpu_temperature_c":  57.0
+                                        }
+                      },
+                      {
+                          "scenario":  "search-c5",
+                          "timestamp":  "2026-08-01T22:20:13-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  5,
+                                                "requested_requests":  100,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  0.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  100,
+                                          "reranked_requests":  0,
+                                          "successes":  100,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  10.43368499999633,
+                                          "throughput_rps":  9.58434148625679,
+                                          "latency_ms":  {
+                                                             "min":  271.5574000030756,
+                                                             "mean":  469.4498850007949,
+                                                             "p50":  453.79079999111127,
+                                                             "p95":  566.2453999975696,
+                                                             "p99":  650.8686000015587,
+                                                             "max":  687.453300008201
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  3,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  15.92,
+                                                                               "hybrid-rag-orchestrator-python-1":  67.73,
+                                                                               "hybrid-rag-dense-index-cpp-1":  1.7,
+                                                                               "hybrid-rag-lexical-index-java-1":  10.98,
+                                                                               "hybrid-rag-ollama-1":  813.74,
+                                                                               "hybrid-rag-reranker-python-1":  0.36
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  34319892,
+                                                                                "hybrid-rag-orchestrator-python-1":  61100523,
+                                                                                "hybrid-rag-dense-index-cpp-1":  12205424,
+                                                                                "hybrid-rag-lexical-index-java-1":  89045073,
+                                                                                "hybrid-rag-ollama-1":  1966021279,
+                                                                                "hybrid-rag-reranker-python-1":  1232655613
+                                                                            },
+                                            "peak_gpu_memory_mib":  2984.0,
+                                            "peak_gpu_utilization_percent":  39.0,
+                                            "peak_gpu_temperature_c":  57.0
+                                        }
+                      },
+                      {
+                          "scenario":  "search-c10",
+                          "timestamp":  "2026-08-01T22:20:23-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  10,
+                                                "requested_requests":  100,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  0.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  100,
+                                          "reranked_requests":  0,
+                                          "successes":  100,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  10.439995799999451,
+                                          "throughput_rps":  9.578547914742002,
+                                          "latency_ms":  {
+                                                             "min":  588.927299992065,
+                                                             "mean":  950.3051579999737,
+                                                             "p50":  929.7454000043217,
+                                                             "p95":  1185.229499998968,
+                                                             "p99":  1413.249999997788,
+                                                             "max":  1530.9101000020746
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  3,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  15.17,
+                                                                               "hybrid-rag-orchestrator-python-1":  68.01,
+                                                                               "hybrid-rag-dense-index-cpp-1":  1.64,
+                                                                               "hybrid-rag-lexical-index-java-1":  2.54,
+                                                                               "hybrid-rag-ollama-1":  856.93,
+                                                                               "hybrid-rag-reranker-python-1":  0.45
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  42026926,
+                                                                                "hybrid-rag-orchestrator-python-1":  71418511,
+                                                                                "hybrid-rag-dense-index-cpp-1":  12247367,
+                                                                                "hybrid-rag-lexical-index-java-1":  97475624,
+                                                                                "hybrid-rag-ollama-1":  1979979923,
+                                                                                "hybrid-rag-reranker-python-1":  1232655613
+                                                                            },
+                                            "peak_gpu_memory_mib":  2982.0,
+                                            "peak_gpu_utilization_percent":  37.0,
+                                            "peak_gpu_temperature_c":  57.0
+                                        }
+                      },
+                      {
+                          "scenario":  "search-c20",
+                          "timestamp":  "2026-08-01T22:20:57-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  20,
+                                                "requested_requests":  200,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  0.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  200,
+                                          "reranked_requests":  0,
+                                          "successes":  200,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  33.47165629999654,
+                                          "throughput_rps":  5.975204758541354,
+                                          "latency_ms":  {
+                                                             "min":  1283.3796000049915,
+                                                             "mean":  3224.77614849995,
+                                                             "p50":  1894.6555000002263,
+                                                             "p95":  15440.074400001322,
+                                                             "p99":  16152.974199998425,
+                                                             "max":  16458.398500006297
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  8,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  203.6,
+                                                                               "hybrid-rag-orchestrator-python-1":  193.01,
+                                                                               "hybrid-rag-dense-index-cpp-1":  40.63,
+                                                                               "hybrid-rag-lexical-index-java-1":  188.95,
+                                                                               "hybrid-rag-ollama-1":  1340.71,
+                                                                               "hybrid-rag-reranker-python-1":  0.53
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  61226352,
+                                                                                "hybrid-rag-orchestrator-python-1":  105591603,
+                                                                                "hybrid-rag-dense-index-cpp-1":  17783848,
+                                                                                "hybrid-rag-lexical-index-java-1":  102498304,
+                                                                                "hybrid-rag-ollama-1":  2327872274,
+                                                                                "hybrid-rag-reranker-python-1":  1232655613
+                                                                            },
+                                            "peak_gpu_memory_mib":  2984.0,
+                                            "peak_gpu_utilization_percent":  38.0,
+                                            "peak_gpu_temperature_c":  58.0
+                                        }
+                      },
+                      {
+                          "scenario":  "search-c40",
+                          "timestamp":  "2026-08-01T22:21:49-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  40,
+                                                "requested_requests":  400,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  0.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  400,
+                                          "reranked_requests":  0,
+                                          "successes":  400,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  51.996510699987994,
+                                          "throughput_rps":  7.692823895586755,
+                                          "latency_ms":  {
+                                                             "min":  2320.3549000027124,
+                                                             "mean":  5077.511151749858,
+                                                             "p50":  3740.633599998546,
+                                                             "p95":  17525.43350000633,
+                                                             "p99":  19036.461399999098,
+                                                             "max":  19695.519100001547
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  12,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  32.75,
+                                                                               "hybrid-rag-orchestrator-python-1":  97.33,
+                                                                               "hybrid-rag-dense-index-cpp-1":  4.98,
+                                                                               "hybrid-rag-lexical-index-java-1":  100.37,
+                                                                               "hybrid-rag-ollama-1":  1285.18,
+                                                                               "hybrid-rag-reranker-python-1":  282.8
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  95588188,
+                                                                                "hybrid-rag-orchestrator-python-1":  109681049,
+                                                                                "hybrid-rag-dense-index-cpp-1":  17951621,
+                                                                                "hybrid-rag-lexical-index-java-1":  106954752,
+                                                                                "hybrid-rag-ollama-1":  2510408384,
+                                                                                "hybrid-rag-reranker-python-1":  1239098064
+                                                                            },
+                                            "peak_gpu_memory_mib":  2992.0,
+                                            "peak_gpu_utilization_percent":  39.0,
+                                            "peak_gpu_temperature_c":  57.0
+                                        }
+                      },
+                      {
+                          "scenario":  "rerank-c1",
+                          "timestamp":  "2026-08-01T22:22:24-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  1,
+                                                "requested_requests":  40,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  1.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  40,
+                                          "reranked_requests":  40,
+                                          "successes":  40,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  34.535386300005484,
+                                          "throughput_rps":  1.1582323027321588,
+                                          "latency_ms":  {
+                                                             "min":  738.2941000105347,
+                                                             "mean":  828.4614425014297,
+                                                             "p50":  820.3864999959478,
+                                                             "p95":  900.3533999930369,
+                                                             "p99":  1179.365299991332,
+                                                             "max":  1179.365299991332
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  9,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  7.9,
+                                                                               "hybrid-rag-orchestrator-python-1":  18.44,
+                                                                               "hybrid-rag-dense-index-cpp-1":  0.23,
+                                                                               "hybrid-rag-lexical-index-java-1":  3.05,
+                                                                               "hybrid-rag-ollama-1":  74.29,
+                                                                               "hybrid-rag-reranker-python-1":  79.21
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  38105251,
+                                                                                "hybrid-rag-orchestrator-python-1":  146800640,
+                                                                                "hybrid-rag-dense-index-cpp-1":  18066964,
+                                                                                "hybrid-rag-lexical-index-java-1":  110834483,
+                                                                                "hybrid-rag-ollama-1":  1963873796,
+                                                                                "hybrid-rag-reranker-python-1":  1244466774
+                                                                            },
+                                            "peak_gpu_memory_mib":  2986.0,
+                                            "peak_gpu_utilization_percent":  99.0,
+                                            "peak_gpu_temperature_c":  66.0
+                                        }
+                      },
+                      {
+                          "scenario":  "rerank-c2",
+                          "timestamp":  "2026-08-01T22:22:50-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  2,
+                                                "requested_requests":  40,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  1.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  40,
+                                          "reranked_requests":  40,
+                                          "successes":  40,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  25.677173600008246,
+                                          "throughput_rps":  1.55780385423679,
+                                          "latency_ms":  {
+                                                             "min":  1170.9488000051351,
+                                                             "mean":  1270.4544325017196,
+                                                             "p50":  1258.8837999937823,
+                                                             "p95":  1353.4095000068191,
+                                                             "p99":  1428.853599994909,
+                                                             "max":  1428.853599994909
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  7,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  8.56,
+                                                                               "hybrid-rag-orchestrator-python-1":  13.9,
+                                                                               "hybrid-rag-dense-index-cpp-1":  2.32,
+                                                                               "hybrid-rag-lexical-index-java-1":  1.01,
+                                                                               "hybrid-rag-ollama-1":  113.71,
+                                                                               "hybrid-rag-reranker-python-1":  133.37
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  39751516,
+                                                                                "hybrid-rag-orchestrator-python-1":  146171494,
+                                                                                "hybrid-rag-dense-index-cpp-1":  18276679,
+                                                                                "hybrid-rag-lexical-index-java-1":  113560780,
+                                                                                "hybrid-rag-ollama-1":  1975684956,
+                                                                                "hybrid-rag-reranker-python-1":  1248761741
+                                                                            },
+                                            "peak_gpu_memory_mib":  3290.0,
+                                            "peak_gpu_utilization_percent":  99.0,
+                                            "peak_gpu_temperature_c":  65.0
+                                        }
+                      },
+                      {
+                          "scenario":  "rerank-c4",
+                          "timestamp":  "2026-08-01T22:23:12-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  4,
+                                                "requested_requests":  40,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  1.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  40,
+                                          "reranked_requests":  40,
+                                          "successes":  40,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  22.43610199999239,
+                                          "throughput_rps":  1.7828408874239192,
+                                          "latency_ms":  {
+                                                             "min":  1582.4494999978924,
+                                                             "mean":  2164.700714999344,
+                                                             "p50":  2159.2624000040814,
+                                                             "p95":  2446.030899998732,
+                                                             "p99":  2588.835400005337,
+                                                             "max":  2588.835400005337
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  6,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  8.77,
+                                                                               "hybrid-rag-orchestrator-python-1":  15.31,
+                                                                               "hybrid-rag-dense-index-cpp-1":  2.44,
+                                                                               "hybrid-rag-lexical-index-java-1":  2.63,
+                                                                               "hybrid-rag-ollama-1":  152.45,
+                                                                               "hybrid-rag-reranker-python-1":  222.46
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  44396707,
+                                                                                "hybrid-rag-orchestrator-python-1":  108317900,
+                                                                                "hybrid-rag-dense-index-cpp-1":  17878220,
+                                                                                "hybrid-rag-lexical-index-java-1":  116077363,
+                                                                                "hybrid-rag-ollama-1":  2010044694,
+                                                                                "hybrid-rag-reranker-python-1":  1246614257
+                                                                            },
+                                            "peak_gpu_memory_mib":  3782.0,
+                                            "peak_gpu_utilization_percent":  99.0,
+                                            "peak_gpu_temperature_c":  66.0
+                                        }
+                      },
+                      {
+                          "scenario":  "rerank-c8",
+                          "timestamp":  "2026-08-01T22:23:35-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  8,
+                                                "requested_requests":  40,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  1.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  40,
+                                          "reranked_requests":  40,
+                                          "successes":  40,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  22.824456800008193,
+                                          "throughput_rps":  1.7525061100242982,
+                                          "latency_ms":  {
+                                                             "min":  2863.755799990031,
+                                                             "mean":  4320.879637499456,
+                                                             "p50":  4437.868899985915,
+                                                             "p95":  4974.889699995401,
+                                                             "p99":  5097.3864999978105,
+                                                             "max":  5097.3864999978105
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  6,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  5.49,
+                                                                               "hybrid-rag-orchestrator-python-1":  29.71,
+                                                                               "hybrid-rag-dense-index-cpp-1":  6.11,
+                                                                               "hybrid-rag-lexical-index-java-1":  2.2,
+                                                                               "hybrid-rag-ollama-1":  439.19,
+                                                                               "hybrid-rag-reranker-python-1":  370.21
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  52764344,
+                                                                                "hybrid-rag-orchestrator-python-1":  113455923,
+                                                                                "hybrid-rag-dense-index-cpp-1":  17720934,
+                                                                                "hybrid-rag-lexical-index-java-1":  118384230,
+                                                                                "hybrid-rag-ollama-1":  2059436818,
+                                                                                "hybrid-rag-reranker-python-1":  1254130450
+                                                                            },
+                                            "peak_gpu_memory_mib":  4598.0,
+                                            "peak_gpu_utilization_percent":  99.0,
+                                            "peak_gpu_temperature_c":  67.0
+                                        }
+                      },
+                      {
+                          "scenario":  "mixed-c12",
+                          "timestamp":  "2026-08-01T22:24:15-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  12,
+                                                "requested_requests":  240,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  0.2,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  240,
+                                          "reranked_requests":  54,
+                                          "successes":  240,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  39.555635000011534,
+                                          "throughput_rps":  6.067403544398416,
+                                          "latency_ms":  {
+                                                             "min":  241.56170000787824,
+                                                             "mean":  1405.0472470834695,
+                                                             "p50":  1241.9021000096109,
+                                                             "p95":  2449.0556999953697,
+                                                             "p99":  3024.848300003214,
+                                                             "max":  3234.394599989173
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  10,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  21.69,
+                                                                               "hybrid-rag-orchestrator-python-1":  77.35,
+                                                                               "hybrid-rag-dense-index-cpp-1":  3.87,
+                                                                               "hybrid-rag-lexical-index-java-1":  4.73,
+                                                                               "hybrid-rag-ollama-1":  828.66,
+                                                                               "hybrid-rag-reranker-python-1":  274.28
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  55448698,
+                                                                                "hybrid-rag-orchestrator-python-1":  108317900,
+                                                                                "hybrid-rag-dense-index-cpp-1":  18297651,
+                                                                                "hybrid-rag-lexical-index-java-1":  132749721,
+                                                                                "hybrid-rag-ollama-1":  2014339661,
+                                                                                "hybrid-rag-reranker-python-1":  1261646643
+                                                                            },
+                                            "peak_gpu_memory_mib":  4603.0,
+                                            "peak_gpu_utilization_percent":  99.0,
+                                            "peak_gpu_temperature_c":  67.0
+                                        }
+                      },
+                      {
+                          "scenario":  "reindex-c10",
+                          "timestamp":  "2026-08-01T22:24:34-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  10,
+                                                "requested_requests":  160,
+                                                "duration_seconds":  null,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  0.0,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  160,
+                                          "reranked_requests":  0,
+                                          "successes":  160,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  18.267532300000312,
+                                          "throughput_rps":  8.758709023878243,
+                                          "latency_ms":  {
+                                                             "min":  618.0891000112751,
+                                                             "mean":  1072.7664737501982,
+                                                             "p50":  952.103999996325,
+                                                             "p95":  1794.1108999948483,
+                                                             "p99":  2902.6710000034655,
+                                                             "max":  2942.744700005278
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  5,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  17.23,
+                                                                               "hybrid-rag-orchestrator-python-1":  75.5,
+                                                                               "hybrid-rag-dense-index-cpp-1":  10.39,
+                                                                               "hybrid-rag-lexical-index-java-1":  60.97,
+                                                                               "hybrid-rag-ollama-1":  851.79,
+                                                                               "hybrid-rag-reranker-python-1":  0.41
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  61593354,
+                                                                                "hybrid-rag-orchestrator-python-1":  154560102,
+                                                                                "hybrid-rag-dense-index-cpp-1":  45581598,
+                                                                                "hybrid-rag-lexical-index-java-1":  196188569,
+                                                                                "hybrid-rag-ollama-1":  1999307276,
+                                                                                "hybrid-rag-reranker-python-1":  1255204192
+                                                                            },
+                                            "peak_gpu_memory_mib":  4600.0,
+                                            "peak_gpu_utilization_percent":  55.0,
+                                            "peak_gpu_temperature_c":  59.0
+                                        }
+                      },
+                      {
+                          "scenario":  "soak-c10",
+                          "timestamp":  "2026-08-01T22:27:37-0300",
+                          "configuration":  {
+                                                "base_url":  "http://localhost:8090",
+                                                "concurrency":  10,
+                                                "requested_requests":  null,
+                                                "duration_seconds":  180.0,
+                                                "timeout_seconds":  60.0,
+                                                "rerank_ratio":  0.1,
+                                                "top_k":  5
+                                            },
+                          "results":  {
+                                          "requests":  1646,
+                                          "reranked_requests":  162,
+                                          "successes":  1646,
+                                          "errors":  0,
+                                          "error_rate":  0.0,
+                                          "partial_responses":  0,
+                                          "partial_rate":  0.0,
+                                          "elapsed_seconds":  182.3416908999934,
+                                          "throughput_rps":  9.027008534777492,
+                                          "latency_ms":  {
+                                                             "min":  696.001400006935,
+                                                             "mean":  1097.5093394287321,
+                                                             "p50":  1027.2693000006257,
+                                                             "p95":  1676.5860000014072,
+                                                             "p99":  1927.017900001374,
+                                                             "max":  2141.1446999991313
+                                                         },
+                                          "errors_by_message":  {
+
+                                                                }
+                                      },
+                          "resources":  {
+                                            "samples":  44,
+                                            "peak_container_cpu_percent":  {
+                                                                               "hybrid-rag-postgres-1":  22.9,
+                                                                               "hybrid-rag-orchestrator-python-1":  83.39,
+                                                                               "hybrid-rag-dense-index-cpp-1":  5.72,
+                                                                               "hybrid-rag-lexical-index-java-1":  60.82,
+                                                                               "hybrid-rag-ollama-1":  880.58,
+                                                                               "hybrid-rag-reranker-python-1":  150.54
+                                                                           },
+                                            "peak_container_memory_bytes":  {
+                                                                                "hybrid-rag-postgres-1":  60922265,
+                                                                                "hybrid-rag-orchestrator-python-1":  118489088,
+                                                                                "hybrid-rag-dense-index-cpp-1":  45801799,
+                                                                                "hybrid-rag-lexical-index-java-1":  196712857,
+                                                                                "hybrid-rag-ollama-1":  2033667014,
+                                                                                "hybrid-rag-reranker-python-1":  1255204192
+                                                                            },
+                                            "peak_gpu_memory_mib":  4619.0,
+                                            "peak_gpu_utilization_percent":  99.0,
+                                            "peak_gpu_temperature_c":  63.0
+                                        }
+                      }
+                  ]
+}
