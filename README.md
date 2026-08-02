@@ -253,3 +253,7 @@ consumes the versioned search API and remains separate from retrieval internals.
   adjustment for a substantially different corpus.
 - This repository provides retrieval and ranking; answer generation belongs to
   the consuming application or agent.
+
+## Acknowledgment
+
+This project was developed and validated with the assistance of OpenAI Codex.
