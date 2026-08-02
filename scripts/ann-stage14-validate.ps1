@@ -97,7 +97,9 @@ Assert-True ($null -ne $loadFailure) "corrupted index failure was not logged"
 Write-Host "Testing aggressive invalid ANN configuration..."
 $previousErrorAction = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
-docker run --rm -e HNSW_M=101 gpt-dense-index-cpp *> $null
+$denseImage = docker compose images -q dense-index-cpp
+Assert-True (-not [string]::IsNullOrWhiteSpace($denseImage)) "dense index image not found"
+docker run --rm -e HNSW_M=101 $denseImage *> $null
 $invalidConfigExit = $LASTEXITCODE
 $ErrorActionPreference = $previousErrorAction
 Assert-True ($invalidConfigExit -ne 0) "invalid HNSW_M unexpectedly started"

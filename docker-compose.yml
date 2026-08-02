@@ -1,3 +1,5 @@
+name: hybrid-rag
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -6,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-rag}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rag}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -141,6 +143,10 @@ services:
 
 volumes:
   postgres-data:
+    name: gpt_postgres-data
   ollama-data:
+    name: gpt_ollama-data
   hf-model-cache:
+    name: gpt_hf-model-cache
   dense-index-data:
+    name: gpt_dense-index-data
