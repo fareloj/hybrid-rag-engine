@@ -1,5 +1,8 @@
 # Hybrid RAG Engine
 
+[![CI](https://github.com/fareloj/hybrid-rag-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/fareloj/hybrid-rag-engine/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/fareloj/hybrid-rag-engine)](LICENSE)
+
 A local-first hybrid retrieval service for source code and technical documents.
 It combines dense retrieval, BM25, Reciprocal Rank Fusion (RRF), and a local
 cross-encoder reranker behind a versioned HTTP API.
@@ -234,6 +237,12 @@ Run local checks and the final adversarial suite with:
 The stage-specific scripts cover ingestion, embeddings, dense baselines, BM25,
 RRF, reranking, observability, hardening, ANN persistence and API compatibility.
 Acceptance reports are stored in [`reports/`](reports/).
+
+GitHub Actions runs unit tests, reranker HTTP contract tests, protobuf freshness,
+Compose validation, and the orchestrator/C++/Java image builds on every push and
+pull request. Model-backed integration, CUDA, red-team and load tests remain
+explicit local validations because hosted runners do not provide the required
+GPU and persisted model caches.
 
 ## Failure Handling and Security Boundaries
 

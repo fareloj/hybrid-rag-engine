@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-tests:
+    name: Python tests and contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            services/orchestrator-python/requirements.txt
+            services/reranker-python/requirements.txt
+            tools/proto-requirements.txt
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            -r services/orchestrator-python/requirements.txt \
+            -r services/reranker-python/requirements.txt \
+            -r tools/proto-requirements.txt \
+            pytest
+
+      - name: Test orchestrator
+        working-directory: services/orchestrator-python
+        run: python -m pytest -q
+
+      - name: Test reranker HTTP contract
+        working-directory: services/reranker-python
+        run: python -m pytest -q
+
+      - name: Test load generator
+        run: python -m unittest scripts.load_test_test -v
+
+      - name: Verify generated protobuf contract
+        shell: bash
+        run: |
+          mkdir -p /tmp/rag-generated
+          python -m grpc_tools.protoc \
+            -Iproto \
+            --python_out=/tmp/rag-generated \
+            --grpc_python_out=/tmp/rag-generated \
+            --descriptor_set_out=/tmp/rag_v1_retrieval.pb \
+            --include_imports \
+            proto/rag/v1/retrieval.proto
+          diff -u \
+            services/orchestrator-python/app/generated/rag/v1/retrieval_pb2.py \
+            /tmp/rag-generated/rag/v1/retrieval_pb2.py
+          diff -u \
+            services/orchestrator-python/app/generated/rag/v1/retrieval_pb2_grpc.py \
+            /tmp/rag-generated/rag/v1/retrieval_pb2_grpc.py
+          cmp proto/descriptors/rag_v1_retrieval.pb /tmp/rag_v1_retrieval.pb
+          PYTHONPATH=/tmp/rag-generated python -c \
+            "from rag.v1 import retrieval_pb2; assert retrieval_pb2.SearchRequest(query='ci').query == 'ci'"
+
+      - name: Validate Docker Compose configuration
+        run: docker compose config --quiet
+
+  service-builds:
+    name: Build ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: orchestrator-python
+            context: services/orchestrator-python
+          - service: dense-index-cpp
+            context: services/dense-index-cpp
+          - service: lexical-index-java
+            context: services/lexical-index-java
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
